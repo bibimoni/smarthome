@@ -430,27 +430,284 @@ GET /api/health
 
 ## 🔌 Adafruit IO Integration
 
-The system uses Adafruit IO for MQTT communication with YoloBit devices:
+The system uses Adafruit IO as a cloud MQTT broker for communication between YoloBit devices and the backend.
+
+### Architecture Overview
+
+```
+┌─────────────┐    MQTT Publish    ┌──────────────┐    Subscribe    ┌─────────────┐
+│   YoloBit   │ ─────────────────► │ Adafruit IO  │ ◄─────────────► │  YoloHome   │
+│  (Devices)  │                    │   Broker     │                 │  Backend    │
+└─────────────┘                    └──────────────┘                 └─────────────┘
+      │                                                                   │
+      │                         ┌─────────────────────────────────────────┤
+      │                         │                                         │
+      │                    MQTT Subscribe                           PostgreSQL
+      │                   (for actuator cmds)                        Database
+      │                                                                   │
+      └───────────────────────────────────────────────────────────────────┘
+```
 
 ### Feed Structure
+
+A "feed" is a MQTT topic that stores sensor data or sends commands:
+
 ```
-{username}/feeds/
-├── temperature    # Temperature sensor
-├── humidity       # Humidity sensor
-├── light          # Light level sensor
-├── pir            # Motion sensor
-├── fan            # Fan control
-├── led            # LED control
-├── rgb            # RGB LED control
-└── lcd            # LCD display
+{username}/feeds/{device_type}.{device_name}.{location}
+
+Examples:
+├── quanghung2405/feeds/temperature.living-room    # Temperature sensor
+├── quanghung2405/feeds/humidity.living-room       # Humidity sensor
+├── quanghung2405/feeds/light.living-room          # Light level sensor
+├── quanghung2405/feeds/pir.entrance               # Motion sensor
+├── quanghung2405/feeds/fan.living-room            # Fan control
+├── quanghung2405/feeds/led.bedroom                # LED control
+├── quanghung2405/feeds/rgb.living-room            # RGB LED control
+└── quanghung2405/feeds/lcd.living-room            # LCD display
 ```
 
-### YoloBit Setup
+---
 
-1. Flash MicroPython firmware to YoloBit
-2. Update WiFi credentials in `ohstem.py`
-3. Set Adafruit IO credentials
-4. Deploy the code to YoloBit
+## 📱 Complete Device Setup Guide
+
+### Prerequisites Checklist
+
+Before using the system, you need:
+
+1. ✅ **Adafruit IO Account** (free at [io.adafruit.com](https://io.adafruit.com))
+2. ✅ **Physical YoloBit Device** with sensors and actuators
+3. ✅ **WiFi Network** for YoloBit to connect
+4. ✅ **YoloHome Backend** running (see Quick Start above)
+
+---
+
+### Step 1: Create Adafruit IO Account
+
+1. Go to **https://io.adafruit.com**
+2. Create a free account
+3. Note your credentials:
+   - **Username**: e.g., `quanghung2405`
+   - **AIO Key**: Found at `My Profile` → `AIO Keys` → `View AIO Keys`
+
+### Step 2: Create Feeds on Adafruit IO
+
+A "feed" is a MQTT topic for data storage and messaging.
+
+**Via Web Interface:**
+1. Go to **My Feeds** → **New Feed**
+2. Create feeds for each sensor and actuator:
+
+| Feed Name | Description | Direction |
+|-----------|-------------|-----------|
+| `temperature.living-room` | Temperature readings | YoloBit → Backend |
+| `humidity.living-room` | Humidity readings | YoloBit → Backend |
+| `light.living-room` | Light level readings | YoloBit → Backend |
+| `fan.living-room` | Fan control commands | Backend → YoloBit |
+| `led.bedroom` | LED control commands | Backend → YoloBit |
+
+### Step 3: Configure Backend Environment
+
+Update `.env` with your Adafruit IO credentials:
+
+```env
+ADAFRUIT_IO_USERNAME=your_username
+ADAFRUIT_IO_KEY=your_aio_key
+```
+
+### Step 4: Prepare YoloBit Firmware
+
+Create/update the firmware file (based on `ohstem.py`):
+
+```python
+# firmware.py - Upload to YoloBit
+import network
+import umqtt.simple as mqtt
+import time
+from homebit3_dht20 import DHT20
+from yolobit import *
+
+# ===== WIFI SETUP =====
+wifi = network.WLAN(network.STA_IF)
+wifi.active(True)
+wifi.connect("YOUR_WIFI_SSID", "YOUR_WIFI_PASSWORD")
+
+while not wifi.isconnected():
+    pass
+
+print("WiFi connected!")
+
+# ===== ADAFRUIT IO CONFIG =====
+ADAFRUIT_USER = "your_username"      # Your Adafruit username
+ADAFRUIT_KEY = "your_aio_key"        # Your AIO key
+
+# ===== MQTT CLIENT =====
+client = mqtt.MQTTClient('yolobit', 'io.adafruit.com', 1883,
+                          ADAFRUIT_USER, ADAFRUIT_KEY)
+
+# ===== SENSORS =====
+dht20 = DHT20()
+
+# ===== ACTUATOR CALLBACKS =====
+def on_message(topic, msg):
+    """Called when command received from backend"""
+    topic_str = topic.decode()
+    value = msg.decode()
+
+    if 'fan' in topic_str:
+        pin1.write_digital(1 if value == 'ON' else 0)
+    elif 'led' in topic_str:
+        pin2.write_digital(1 if value == 'ON' else 0)
+    elif 'rgb' in topic_str:
+        # Parse RGB value (e.g., "255,0,0" for red)
+        r, g, b = map(int, value.split(','))
+        # Set RGB LED...
+
+client.set_callback(on_message)
+client.connect()
+
+# ===== SUBSCRIBE TO ACTUATOR FEEDS =====
+client.subscribe(f"{ADAFRUIT_USER}/feeds/fan.living-room")
+client.subscribe(f"{ADAFRUIT_USER}/feeds/led.bedroom")
+
+# ===== MAIN LOOP =====
+last_send = 0
+
+while True:
+    # Check for commands (non-blocking)
+    client.check_msg()
+
+    # Send sensor data every 5 seconds
+    if time.time() - last_send >= 5:
+        last_send = time.time()
+
+        # Read sensors
+        dht20.read_dht20()
+        temp = dht20.dht20_temperature()
+        humi = dht20.dht20_humidity()
+        light = pin0.read_analog()
+
+        # Publish to Adafruit IO
+        client.publish(f"{ADAFRUIT_USER}/feeds/temperature.living-room", str(temp))
+        client.publish(f"{ADAFRUIT_USER}/feeds/humidity.living-room", str(humi))
+        client.publish(f"{ADAFRUIT_USER}/feeds/light.living-room", str(light))
+
+    time.sleep(0.1)
+```
+
+### Step 5: Flash Firmware to YoloBit
+
+1. Connect YoloBit to computer via USB
+2. Use a tool like `ampy` or Thonny IDE
+3. Upload the firmware file
+4. Reset the YoloBit
+
+### Step 6: Register Devices in Backend
+
+Use the API or the setup script to register devices:
+
+**Via API:**
+```bash
+# Login first
+TOKEN=$(curl -s -X POST http://localhost:5001/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"dev@yolohome.com","password":"dev1234"}' | jq -r '.access_token')
+
+# Register sensor
+curl -X POST http://localhost:5001/api/sensors/ \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Living Room Temperature",
+    "type": "temperature",
+    "unit": "°C",
+    "location": "Living Room",
+    "feed_key": "your_username/feeds/temperature.living-room"
+  }'
+
+# Register actuator
+curl -X POST http://localhost:5001/api/actuators/ \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Living Room Fan",
+    "type": "fan",
+    "location": "Living Room",
+    "feed_key": "your_username/feeds/fan.living-room"
+  }'
+```
+
+**Via Script:**
+```bash
+docker-compose -f docker-compose.dev.yml exec api python scripts/init_devices.py
+```
+
+---
+
+### How Data Flows
+
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│                         DATA FLOW DIAGRAM                                 │
+├──────────────────────────────────────────────────────────────────────────┤
+│                                                                           │
+│  SENSOR DATA (YoloBit → Backend):                                        │
+│  ┌─────────┐    read     ┌─────────┐   publish   ┌─────────┐   store    │
+│  │ Sensor  │ ──────────► │ YoloBit │ ──────────► │ Adafruit│ ─────────► │
+│  │ (DHT20) │             │         │             │   IO    │            │
+│  └─────────┘             └─────────┘             └─────────┘            │
+│                                                            │              │
+│                                        subscribe           ▼              │
+│  ┌─────────┐   check     ┌─────────┐   ◄─────────   ┌─────────┐         │
+│  │Threshold│ ◄────────── │ Backend │                │PostgreSQL│        │
+│  │  Rules  │   trigger   │   API   │                │ Database │        │
+│  └─────────┘             └─────────┘                └─────────┘         │
+│       │                                                                      │
+│       │ if temp > 30°C                                                       │
+│       ▼                                                                      │
+│  ┌─────────┐   publish  ┌─────────┐   relay    ┌─────────┐               │
+│  │ Backend │ ──────────►│ Adafruit│ ──────────►│ YoloBit │               │
+│  │   API   │   "ON"     │   IO    │            │         │               │
+│  └─────────┘             └─────────┘            └─────────┘               │
+│                                                          │                  │
+│                              subscribe                   ▼                  │
+│                                                     ┌─────────┐            │
+│                                                     │   Fan   │            │
+│                                                     │  ON/OFF │            │
+│                                                     └─────────┘            │
+└──────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### What Must Match
+
+For data to flow correctly, these **must be identical**:
+
+| Component | Value Example |
+|-----------|---------------|
+| Adafruit IO Feed Name | `temperature.living-room` |
+| YoloBit Publish Topic | `{user}/feeds/temperature.living-room` |
+| Backend `feed_key` | `{user}/feeds/temperature.living-room` |
+| Backend MQTT Subscription | `{user}/feeds/temperature.living-room` |
+
+**All four must use the same feed path!**
+
+---
+
+### Quick Troubleshooting
+
+| Problem | Solution |
+|---------|----------|
+| No sensor data in backend | Check YoloBit WiFi + Adafruit credentials |
+| Actuators not responding | Verify feed subscriptions match |
+| MQTT connection failed | Check Adafruit IO credentials in `.env` |
+| Device not found | Register device via API with correct `feed_key` |
+
+---
+
+### YoloBit Setup (Legacy)
+
+For the original polling-based approach, see `ohstem.py` and `iotgateway.py`.
 
 ## 🧪 Development
 
