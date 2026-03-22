@@ -56,6 +56,10 @@ def _init_extensions(app):
     # Initialize migrate
     migrate = Migrate(app, db)
     
+    # Initialize MQTT service for Adafruit IO
+    from app.services.mqtt_service import init_mqtt
+    init_mqtt(app)
+    
     # JWT error handlers
     @jwt.expired_token_loader
     def expired_token_callback(jwt_header, jwt_payload):

@@ -763,14 +763,4 @@ For production scaling, consider:
 - Use proper reverse proxy (nginx)
 - Enable HTTPS
 
-## 📝 License
-
-This project is for educational purposes (University class project).
-
-## 👥 Authors
-
-- University Class Project - DADN Course
-
----
-
 **YoloHome** - Smart Home Automation System 🏠✨
