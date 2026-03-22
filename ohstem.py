@@ -13,6 +13,8 @@ wifi.connect("wifi", "pass")
 while not wifi.isconnected():
     pass
 
+# DHT20, LightSensor, LCD1602, RGB, Fan
+
 # ===== INIT SENSORS =====
 dht20 = DHT20()
 lcd1602 = LCD1602()

@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database for Development
+  db:
+    image: postgres:15-alpine
+    container_name: yolohome-dev-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: yolohome_dev
+      POSTGRES_USER: yolohome
+      POSTGRES_PASSWORD: yolohome_dev_password
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U yolohome -d yolohome_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Flask Backend Application (Development with hot-reload)
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: yolohome-dev-api
+    restart: unless-stopped
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+      - SECRET_KEY=dev-secret-key-change-in-production
+      - DATABASE_URL=postgresql://yolohome:yolohome_dev_password@db:5432/yolohome_dev
+      - JWT_SECRET_KEY=dev-jwt-secret-key-change-in-production
+      - JWT_ACCESS_TOKEN_EXPIRES=86400
+      - ADAFRUIT_IO_USERNAME=${ADAFRUIT_IO_USERNAME:-quanghung2405}
+      - ADAFRUIT_IO_KEY=${ADAFRUIT_IO_KEY:-aio_anJO06oMkhLtJbAYhp4yRGMmoFoe}
+      - SMTP_SERVER=${SMTP_SERVER:-}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USERNAME=${SMTP_USERNAME:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - EMAIL_FROM=${EMAIL_FROM:-}
+    ports:
+      - "5001:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      # Mount source code for hot-reload (read-write for proper file watching)
+      - ./app:/app/app
+      - ./scripts:/app/scripts
+      - ./migrations:/app/migrations
+
+volumes:
+  postgres_dev_data:
