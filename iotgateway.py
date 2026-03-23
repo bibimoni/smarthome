@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS # Fix CORS error 
 import threading
 import paho.mqtt.client as mqtt
 import time
@@ -13,7 +14,14 @@ FEED_TEMP  = ADAFRUIT_AIO_USERNAME + "/feeds/temperature"
 FEED_HUMID = ADAFRUIT_AIO_USERNAME + "/feeds/humid"
 FEED_LIGHT = ADAFRUIT_AIO_USERNAME + "/feeds/light"
 
+latest_data = {
+    "temp": 0,
+    "humi": 0,
+    "light": 0
+}
+
 app = Flask(__name__)
+CORS(app)
 latest_command = ""
 
 # ===== MQTT CALLBACK =====
@@ -31,6 +39,24 @@ def on_message(client, userdata, msg):
 
     elif msg.topic == FEED_LED:
         latest_command = "LED_ON" if data == "1" else "LED_OFF"
+
+# ===== API điều khiển =====
+@app.route('/control', methods=['POST'])
+def control():
+    """
+        API nhận lệnh điều khiển từ frontend và cập nhật biến latest_command.
+    """
+    global latest_command
+    data = request.json
+    device = data.get("device")
+    state = data.get("state")
+
+    if device == "fan":
+        latest_command = "FAN_ON" if state else "FAN_OFF"
+    elif device == "led":
+        latest_command = "LED_ON" if state else "LED_OFF"
+
+    return jsonify({"status": "ok"})
 
 # ===== RECEIVE SENSOR FROM YOLO =====
 @app.route('/update', methods=['POST'])
@@ -56,6 +82,11 @@ def update():
 
     client.publish(FEED_LIGHT, light)
 
+    # Update latest data
+    latest_data["temp"] = temp
+    latest_data["humi"] = humi
+    latest_data["light"] = light
+
     return "OK"
 
 # ===== YOLO GET COMMAND =====
@@ -77,6 +108,14 @@ def mqtt_loop():
 
     client.connect("io.adafruit.com", 1883, 60)
     client.loop_forever()
+
+# ==== API GET LATEST DATA =====
+@app.route('/data', methods=['GET'])
+def get_data():
+    """
+        API trả về dữ liệu cảm biến mới nhất dưới dạng JSON.
+    """
+    return jsonify(latest_data)
 
 # ===== MAIN =====
 if __name__ == "__main__":
