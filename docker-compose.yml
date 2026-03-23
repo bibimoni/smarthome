@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: yolohome-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-yolohome}
+      POSTGRES_USER: ${DB_USER:-yolohome}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-yolohome_secret_2024}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-yolohome} -d ${DB_NAME:-yolohome}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - yolohome-network
+
+  # Flask Backend Application
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: yolohome-api
+    restart: unless-stopped
+    environment:
+      - FLASK_ENV=${FLASK_ENV:-production}
+      - SECRET_KEY=${SECRET_KEY:-yolohome_super_secret_key_change_in_production}
+      - DATABASE_URL=postgresql://${DB_USER:-yolohome}:${DB_PASSWORD:-yolohome_secret_2024}@db:5432/${DB_NAME:-yolohome}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-jwt_super_secret_key_change_in_production}
+      - JWT_ACCESS_TOKEN_EXPIRES=${JWT_ACCESS_TOKEN_EXPIRES:-86400}
+      - ADAFRUIT_IO_USERNAME=${ADAFRUIT_IO_USERNAME}
+      - ADAFRUIT_IO_KEY=${ADAFRUIT_IO_KEY}
+      - SMTP_SERVER=${SMTP_SERVER:-smtp.gmail.com}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USERNAME=${SMTP_USERNAME}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - EMAIL_FROM=${EMAIL_FROM:-noreply@yolohome.com}
+    ports:
+      - "${API_PORT:-5000}:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - yolohome-network
+
+  # Redis for caching (optional, for future scaling)
+  redis:
+    image: redis:7-alpine
+    container_name: yolohome-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - yolohome-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  yolohome-network:
+    driver: bridge
