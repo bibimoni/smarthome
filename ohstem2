@@ -1,0 +1,167 @@
+"""
+YoloBit Firmware for YoloHome Smart Home System
+Devices: DHT20, Light Sensor, Fan, RGB LED, LCD1602
+"""
+
+from homebit3_dht20 import DHT20
+from homebit3_lcd1602 import LCD1602
+from yolobit import *
+import time
+import network
+import ujson
+import umqtt.simple as mqtt
+from aiot_rgbled import RGBLed
+# Configuration
+WIFI_SSID = "OPPO A78"
+WIFI_PASSWORD = "373152361"
+ADAFRUIT_IO_USERNAME = "quanghung2405"
+ADAFRUIT_IO_KEY = "aio_TicG98zaSvekRAmarpxbKLZuh4Jx"
+DEVICE_LOCATION = "living-room"
+READ_INTERVAL = 10
+
+# Feed names (must match backend device_service.py DEFAULT_SENSORS/DEFAULT_ACTUATORS)
+FEED_TEMP = f"{ADAFRUIT_IO_USERNAME}/feeds/temperature"
+FEED_HUMIDITY = f"{ADAFRUIT_IO_USERNAME}/feeds/humidity"
+FEED_LIGHT = f"{ADAFRUIT_IO_USERNAME}/feeds/light"
+FEED_FAN = f"{ADAFRUIT_IO_USERNAME}/feeds/fan"
+FEED_LED = f"{ADAFRUIT_IO_USERNAME}/feeds/led"
+
+# Global state
+fan_speed = 0
+led_state = "OFF"
+last_send = 0
+client = None
+rgb_led = RGBLed(pin2.pin, 4)
+# Initialize sensors
+dht20 = DHT20()
+lcd1602 = LCD1602()
+
+def connect_wifi():
+    print(f"Connecting to WiFi: {WIFI_SSID}")
+    wifi = network.WLAN(network.STA_IF)
+    wifi.active(True)
+    wifi.connect(WIFI_SSID, WIFI_PASSWORD)
+    
+    retry = 0
+    while not wifi.isconnected() and retry < 20:
+        print(".", end="")
+        time.sleep(0.5)
+        retry += 1
+    
+    if wifi.isconnected():
+        print(f"\nWiFi connected! IP: {wifi.ifconfig()[0]}")
+        return True
+    print("\nWiFi connection failed!")
+    return False
+
+def on_message(topic, msg):
+    global fan_speed, rgb_color
+    
+    topic_str = topic.decode('utf-8')
+    value = msg.decode('utf-8')
+    print(f"Received: {topic_str} = {value}")
+    
+    if 'fan' in topic_str:
+        try:
+            speed = max(0, min(100, int(value)))
+            fan_speed = speed
+            pin1.write_analog(int(speed * 1023 / 100))
+            print(f"Fan speed: {speed}%")
+        except ValueError:
+            if value.upper() == 'ON':
+                pin1.write_analog(1023)
+                fan_speed = 100
+                print("Fan: ON")
+            else:
+                pin1.write_analog(0)
+                fan_speed = 0
+                print("Fan: OFF")
+    
+    elif 'led' in topic_str:
+        if value.upper() == 'ON':
+            # Turn LED on (using pin2)
+            rgb_led.show(1, hex_to_rgb("#00ff00"))
+            led_state = "ON"
+        else:
+            rgb_led.show(1, hex_to_rgb("#000000"))
+            led_state = "OFF"
+def connect_mqtt():
+    global client
+    try:
+        client = mqtt.MQTTClient('yolobit', 'io.adafruit.com', 1883,
+                                  ADAFRUIT_IO_USERNAME, ADAFRUIT_IO_KEY)
+        client.set_callback(on_message)
+        client.connect()
+        client.subscribe(FEED_FAN)
+        client.subscribe(FEED_LED)
+        print("Connected to Adafruit IO")
+        return True
+    except Exception as e:
+        print(f"MQTT connection failed: {e}")
+        return False
+
+def read_sensors():
+    dht20.read_dht20()
+    temp = round(dht20.dht20_temperature(), 1)
+    hum = round(dht20.dht20_humidity(), 1)
+    light = round(pin0.read_analog() * 100 / 4095)
+    return temp, hum, light
+
+def update_lcd(temp, hum, light):
+    lcd1602.clear()
+    lcd1602.move_to(0, 0)
+    lcd1602.putstr(f'T:{temp}C H:{hum}%')
+    lcd1602.move_to(0, 1)
+    lcd1602.putstr(f'L:{light}% F:{fan_speed}%')
+
+def publish_sensors(temp, hum, light):
+    if client is None:
+        return
+    try:
+        client.publish(FEED_TEMP, str(temp))
+        time.sleep(0.1)
+        client.publish(FEED_HUMIDITY, str(hum))
+        time.sleep(0.1)
+        client.publish(FEED_LIGHT, str(light))
+        time.sleep(0.1)
+        print(f"Published: T={temp}C, H={hum}%, L={light}%")
+    except Exception as e:
+        print(f"Publish error: {e}")
+
+def main():
+    global last_send
+    
+    print("YoloHome - YoloBit Firmware")
+    
+    if not connect_wifi():
+        print("Restarting...")
+        time.sleep(5)
+        import machine
+        machine.reset()
+    
+    if not connect_mqtt():
+        print("Restarting...")
+        time.sleep(5)
+        import machine
+        machine.reset()
+    
+    print(f"Starting main loop (interval: {READ_INTERVAL}s)")
+    
+    while True:
+        try:
+            client.check_msg()
+            
+            if time.time() - last_send >= READ_INTERVAL:
+                last_send = time.time()
+                temp, hum, light = read_sensors()
+                update_lcd(temp, hum, light)
+                print(f"T:{temp}C, H:{hum}%, L:{light}%, FAN:{fan_speed}%")
+                publish_sensors(temp, hum, light)
+            
+            time.sleep(0.1)
+        except Exception as e:
+            print(f"Error: {e}")
+            time.sleep(1)
+
+if __name__ == "__main__":
+    main()
