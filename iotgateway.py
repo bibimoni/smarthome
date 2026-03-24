@@ -5,7 +5,7 @@ import time
 
 # ===== ADAFRUIT CONFIG =====
 ADAFRUIT_AIO_USERNAME = "quanghung2405"
-ADAFRUIT_AIO_KEY      = "aio_xWRU45vsUZKmCwgIJaTGqnnHgrmQ"
+ADAFRUIT_AIO_KEY      = "aio_VsGq45lw71t0aqYbVhs34pgpOvEL"
 
 FEED_FAN  = ADAFRUIT_AIO_USERNAME + "/feeds/fan"
 FEED_LED  = ADAFRUIT_AIO_USERNAME + "/feeds/led"

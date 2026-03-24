@@ -15,11 +15,11 @@ import umqtt.simple as mqtt
 WIFI_SSID = "YOUR_WIFI_SSID"
 WIFI_PASSWORD = "YOUR_WIFI_PASSWORD"
 ADAFRUIT_IO_USERNAME = "quanghung2405"
-ADAFRUIT_IO_KEY = "aio_xWRU45vsUZKmCwgIJaTGqnnHgrmQ"
+ADAFRUIT_IO_KEY = "aio_VsGq45lw71t0aqYbVhs34pgpOvEL"
 DEVICE_LOCATION = "living-room"
 READ_INTERVAL = 5
 
-# Feed names (simple format without location)
+# Feed names (must match backend device_service.py DEFAULT_SENSORS/DEFAULT_ACTUATORS)
 FEED_TEMP = f"{ADAFRUIT_IO_USERNAME}/feeds/temperature"
 FEED_HUMIDITY = f"{ADAFRUIT_IO_USERNAME}/feeds/humidity"
 FEED_LIGHT = f"{ADAFRUIT_IO_USERNAME}/feeds/light"

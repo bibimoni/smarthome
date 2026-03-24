@@ -96,7 +96,7 @@ JWT_ACCESS_TOKEN_EXPIRES=86400
 
 # Adafruit IO Configuration
 ADAFRUIT_IO_USERNAME=quanghung2405
-ADAFRUIT_IO_KEY=aio_anJO06oMkhLtJbAYhp4yRGMmoFoe
+ADAFRUIT_IO_KEY=aio_VsGq45lw71t0aqYbVhs34pgpOvEL
 
 # Email (optional - leave empty for local dev)
 SMTP_SERVER=

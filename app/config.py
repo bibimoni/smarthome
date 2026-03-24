@@ -51,7 +51,7 @@ class Config:
     ADAFRUIT_IO_USERNAME = os.environ.get('ADAFRUIT_IO_USERNAME', 'quanghung2405')
     ADAFRUIT_IO_KEY = os.environ.get(
         'ADAFRUIT_IO_KEY',
-        'aio_anJO06oMkhLtJbAYhp4yRGMmoFoe'
+        'aio_VsGq45lw71t0aqYbVhs34pgpOvEL'  
     )
     
     # Application

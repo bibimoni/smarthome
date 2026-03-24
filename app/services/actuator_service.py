@@ -5,9 +5,14 @@ from datetime import datetime
 from app.extensions import db
 from app.models.device import Actuator
 from app.models.data import EventLog
-from app.services.mqtt_service import mqtt_service
 
 logger = logging.getLogger(__name__)
+
+
+def get_mqtt_service():
+    """Get the MQTT service instance dynamically."""
+    from app.services.mqtt_service import mqtt_service
+    return mqtt_service
 
 
 class ActuatorService:
@@ -62,11 +67,13 @@ class ActuatorService:
         if manual_override:
             actuator.mode = Actuator.MODE_MANUAL
         
-        # Send command via MQTT
-        if mqtt_service:
-            logger.info(f"Publishing MQTT command: feed_key={actuator.feed_key}, action={action}")
-            success = mqtt_service.publish_actuator_command(actuator.feed_key, action)
-            logger.info(f"MQTT publish result: {success}")
+        # Send command via MQTT (publishes and queues for HTTP polling)
+        mqtt = get_mqtt_service()
+        if mqtt:
+            logger.info(f"Sending command: feed_key={actuator.feed_key}, action={action}")
+            # This publishes to MQTT AND queues for HTTP polling
+            success = mqtt.queue_command(actuator.feed_key, action)
+            logger.info(f"Command sent: {success}")
         else:
             logger.warning("MQTT service not available")
         

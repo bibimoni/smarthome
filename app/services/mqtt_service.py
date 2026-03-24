@@ -145,7 +145,7 @@ class MQTTService:
     
     def _subscribe_to_feeds(self):
         """Subscribe to all relevant feeds."""
-        from app.models.device import Sensor
+        from app.models.device import Sensor, Actuator
         
         # Use stored flask_app for context, or try current_app as fallback
         app = self.flask_app
@@ -163,12 +163,22 @@ class MQTTService:
         # Get all active sensors from database (need app context)
         try:
             with app.app_context():
+                # Subscribe to sensors (they send data TO us)
                 sensors = Sensor.query.filter_by(is_active=True).all()
-                
+                logger.info("📡 Subscribing to sensor feeds...")
                 for sensor in sensors:
                     topic = f"{self.username}/feeds/{sensor.feed_key}"
                     self.client.subscribe(topic)
-                    logger.info(f"✅ Subscribed to: {topic}")
+                    logger.info(f"  ✅ Subscribed to sensor: {sensor.feed_key}")
+                
+                # Log available actuators (we send commands TO them via PUBLISH)
+                actuators = Actuator.query.filter_by(is_active=True).all()
+                if actuators:
+                    logger.info("🎮 Available actuators (control via API):")
+                    for actuator in actuators:
+                        logger.info(f"  📤 {actuator.name} -> {self.username}/feeds/{actuator.feed_key}")
+                    test_cmd = 'curl -X POST http://localhost:5001/api/actuators/1/control -H "Authorization: Bearer <token>" -H "Content-Type: application/json" -d \'{"action": "ON"}\''
+                    logger.info(f"  💡 Test with: {test_cmd}")
         except Exception as e:
             logger.warning(f"MQTT: Could not subscribe to feeds: {e}")
     
@@ -289,19 +299,33 @@ class MQTTService:
             logger.error(f"Error publishing to {topic}: {e}")
             return False
     
-    def queue_command(self, command: str, value: str):
+    def queue_command(self, feed_key: str, value: str):
         """
-        Queue a command for devices to fetch.
+        Queue a command for devices to fetch via HTTP polling.
+        Also publishes to MQTT for direct MQTT devices.
         
         Args:
-            command: Command type (e.g., "FAN_ON", "LED_OFF")
-            value: Command value
+            feed_key: Feed key (e.g., "fan", "led")
+            value: Command value (e.g., "ON", "OFF", "1", "0")
         """
+        # Map feed_key to command name for YoloBit polling
+        command_map = {
+            'fan': 'FAN',
+            'led': 'LED'
+        }
+        cmd_name = command_map.get(feed_key, feed_key.upper())
+        command = f"{cmd_name}_{value}"
+        
         self._command_queue.append({
             'command': command,
             'value': value,
+            'feed_key': feed_key,
             'timestamp': time.time()
         })
+        logger.info(f"Queued command: {command} (feed: {feed_key})")
+        
+        # Also publish to MQTT for direct MQTT devices
+        self.publish_actuator_command(feed_key, value)
     
     def get_commands(self) -> list:
         """
@@ -314,6 +338,14 @@ class MQTTService:
         commands = self._command_queue.copy()
         self._command_queue.clear()
         return commands
+    
+    def get_latest_command(self) -> dict:
+        """Get the latest command and clear queue (for YoloBit polling)."""
+        if self._command_queue:
+            cmd = self._command_queue[-1]  # Get last command
+            self._command_queue.clear()
+            return cmd
+        return {'command': '', 'value': ''}
     
     def send_sensor_data(self, feed_key: str, value: float):
         """
