@@ -1,10 +1,13 @@
 """MQTT Service for Adafruit IO integration."""
 import json
+import logging
 import threading
 import time
 from typing import Optional, Callable, Dict
 import paho.mqtt.client as mqtt
 from flask import current_app
+
+logger = logging.getLogger(__name__)
 
 
 class MQTTService:
@@ -24,19 +27,21 @@ class MQTTService:
                     cls._instance = super().__new__(cls)
         return cls._instance
     
-    def __init__(self, username: str = None, api_key: str = None):
+    def __init__(self, username: str = None, api_key: str = None, flask_app=None):
         """
         Initialize MQTT service.
         
         Args:
             username: Adafruit IO username
             api_key: Adafruit IO API key
+            flask_app: Flask application instance for app context
         """
         if hasattr(self, '_initialized') and self._initialized:
             return
         
         self.username = username
         self.api_key = api_key
+        self.flask_app = flask_app  # Store Flask app for context
         self.client = None
         self.connected = False
         self._callbacks = {}  # topic -> callback
@@ -58,7 +63,7 @@ class MQTTService:
         api_key = app.config.get('ADAFRUIT_IO_KEY')
         
         if username and api_key:
-            service = cls(username, api_key)
+            service = cls(username, api_key, flask_app=app)
             app.mqtt_service = service
             return service
         return None
@@ -84,12 +89,14 @@ class MQTTService:
         
         # Connect to Adafruit IO
         try:
+            logger.info(f"Connecting to Adafruit IO as {self.username}...")
             self.client.connect("io.adafruit.com", 1883, 60)
             # Start the loop in a background thread
             self.client.loop_start()
             self._initialized = True
+            logger.info("MQTT loop started in background thread")
         except Exception as e:
-            print(f"MQTT connection error: {e}")
+            logger.error(f"MQTT connection error: {e}")
     
     def disconnect(self):
         """Disconnect from MQTT broker."""
@@ -103,16 +110,16 @@ class MQTTService:
         """Callback when connected to MQTT broker."""
         if rc == 0:
             self.connected = True
-            print("Connected to Adafruit IO")
+            logger.info("✅ Connected to Adafruit IO MQTT broker successfully!")
             # Subscribe to all sensor feeds
             self._subscribe_to_feeds()
         else:
-            print(f"Connection failed with code: {rc}")
+            logger.error(f"❌ MQTT connection failed with code: {rc}")
     
     def _on_disconnect(self, client, userdata, rc):
         """Callback when disconnected from MQTT broker."""
         self.connected = False
-        print(f"Disconnected from Adafruit IO (rc: {rc})")
+        logger.warning(f"⚠️ Disconnected from Adafruit IO (rc: {rc})")
     
     def _on_message(self, client, userdata, msg):
         """Callback when message received."""
@@ -140,13 +147,30 @@ class MQTTService:
         """Subscribe to all relevant feeds."""
         from app.models.device import Sensor
         
-        # Get all active sensors from database
-        sensors = Sensor.query.filter_by(is_active=True).all()
+        # Use stored flask_app for context, or try current_app as fallback
+        app = self.flask_app
+        if app is None:
+            try:
+                from flask import current_app
+                app = current_app._get_current_object()
+            except RuntimeError:
+                pass
         
-        for sensor in sensors:
-            topic = f"{self.username}/feeds/{sensor.feed_key}"
-            self.client.subscribe(topic)
-            print(f"Subscribed to: {topic}")
+        if app is None:
+            logger.warning("MQTT: No Flask app available, skipping sensor subscription")
+            return
+        
+        # Get all active sensors from database (need app context)
+        try:
+            with app.app_context():
+                sensors = Sensor.query.filter_by(is_active=True).all()
+                
+                for sensor in sensors:
+                    topic = f"{self.username}/feeds/{sensor.feed_key}"
+                    self.client.subscribe(topic)
+                    logger.info(f"✅ Subscribed to: {topic}")
+        except Exception as e:
+            logger.warning(f"MQTT: Could not subscribe to feeds: {e}")
     
     def _process_sensor_data(self, topic: str, data):
         """Process incoming sensor data."""
@@ -250,16 +274,19 @@ class MQTTService:
             value: Command value (e.g., "ON", "OFF", "50")
         """
         if not self.client or not self.connected:
-            print("MQTT not connected, cannot publish")
+            logger.warning("MQTT not connected, cannot publish")
             return False
         
         topic = f"{self.username}/feeds/{feed_key}"
+        logger.info(f"Publishing to MQTT topic: {topic}, value: {value}")
         
         try:
             result = self.client.publish(topic, value)
-            return result.rc == mqtt.MQTT_ERR_SUCCESS
+            success = result.rc == mqtt.MQTT_ERR_SUCCESS
+            logger.info(f"MQTT publish result: rc={result.rc}, success={success}")
+            return success
         except Exception as e:
-            print(f"Error publishing to {topic}: {e}")
+            logger.error(f"Error publishing to {topic}: {e}")
             return False
     
     def queue_command(self, command: str, value: str):

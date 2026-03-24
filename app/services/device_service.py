@@ -13,68 +13,47 @@ class DeviceService:
     # Default sensor configurations for YoloBit
     DEFAULT_SENSORS = [
         {
-            'name': 'Nhiệt độ',
+            'name': 'Temperature',
             'type': Sensor.TYPE_TEMPERATURE,
             'feed_key': 'temperature',
             'unit': '°C',
             'min_value': -40,
             'max_value': 80,
-            'description': 'Cảm biến nhiệt độ DHT20'
+            'description': 'DHT20 Temperature Sensor'
         },
         {
-            'name': 'Độ ẩm',
+            'name': 'Humidity',
             'type': Sensor.TYPE_HUMIDITY,
-            'feed_key': 'humid',
+            'feed_key': 'humidity',
             'unit': '%',
             'min_value': 0,
             'max_value': 100,
-            'description': 'Cảm biến độ ẩm DHT20'
+            'description': 'DHT20 Humidity Sensor'
         },
         {
-            'name': 'Ánh sáng',
+            'name': 'Light',
             'type': Sensor.TYPE_LIGHT,
             'feed_key': 'light',
             'unit': 'lux',
             'min_value': 0,
             'max_value': 4095,
-            'description': 'Cảm biến ánh sáng analog'
-        },
-        {
-            'name': 'Chuyển động PIR',
-            'type': Sensor.TYPE_PIR,
-            'feed_key': 'pir',
-            'unit': '',
-            'min_value': 0,
-            'max_value': 1,
-            'description': 'Cảm biến chuyển động PIR'
+            'description': 'Analog Light Sensor'
         }
     ]
     
     # Default actuator configurations for YoloBit
     DEFAULT_ACTUATORS = [
         {
-            'name': 'Quạt',
+            'name': 'Fan',
             'type': Actuator.TYPE_FAN,
             'feed_key': 'fan',
-            'description': 'Quạt điều khiển PWM'
+            'description': 'PWM Controlled Fan'
         },
         {
-            'name': 'Đèn LED',
+            'name': 'LED',
             'type': Actuator.TYPE_LED,
             'feed_key': 'led',
-            'description': 'Đèn LED điều khiển on/off'
-        },
-        {
-            'name': 'Đèn RGB',
-            'type': Actuator.TYPE_RGB,
-            'feed_key': 'rgb',
-            'description': 'Đèn RGB NeoPixel'
-        },
-        {
-            'name': 'Màn hình LCD',
-            'type': Actuator.TYPE_LCD,
-            'feed_key': 'lcd',
-            'description': 'Màn hình LCD1602 I2C'
+            'description': 'On/Off LED'
         }
     ]
     

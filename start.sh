@@ -47,8 +47,8 @@ JWT_SECRET_KEY=jwt_super_secret_key_change_in_production
 JWT_ACCESS_TOKEN_EXPIRES=86400
 
 # Adafruit IO Configuration (Required)
-ADAFRUIT_IO_USERNAME=your_adafruit_username
-ADAFRUIT_IO_KEY=your_adafruit_aio_key
+ADAFRUIT_IO_USERNAME=quanghung2405
+ADAFRUIT_IO_KEY=aio_xWRU45vsUZKmCwgIJaTGqnnHgrmQ
 
 # Email Configuration (Gmail SMTP)
 SMTP_SERVER=smtp.gmail.com

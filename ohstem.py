@@ -15,20 +15,20 @@ import umqtt.simple as mqtt
 WIFI_SSID = "YOUR_WIFI_SSID"
 WIFI_PASSWORD = "YOUR_WIFI_PASSWORD"
 ADAFRUIT_IO_USERNAME = "quanghung2405"
-ADAFRUIT_IO_KEY = "aio_anJO06oMkhLtJbAYhp4yRGMmoFoe"
+ADAFRUIT_IO_KEY = "aio_xWRU45vsUZKmCwgIJaTGqnnHgrmQ"
 DEVICE_LOCATION = "living-room"
 READ_INTERVAL = 5
 
-# Feed names
-FEED_TEMP = f"{ADAFRUIT_IO_USERNAME}/feeds/temperature.{DEVICE_LOCATION}"
-FEED_HUMIDITY = f"{ADAFRUIT_IO_USERNAME}/feeds/humidity.{DEVICE_LOCATION}"
-FEED_LIGHT = f"{ADAFRUIT_IO_USERNAME}/feeds/light.{DEVICE_LOCATION}"
-FEED_FAN = f"{ADAFRUIT_IO_USERNAME}/feeds/fan.{DEVICE_LOCATION}"
-FEED_RGB = f"{ADAFRUIT_IO_USERNAME}/feeds/rgb.{DEVICE_LOCATION}"
+# Feed names (simple format without location)
+FEED_TEMP = f"{ADAFRUIT_IO_USERNAME}/feeds/temperature"
+FEED_HUMIDITY = f"{ADAFRUIT_IO_USERNAME}/feeds/humidity"
+FEED_LIGHT = f"{ADAFRUIT_IO_USERNAME}/feeds/light"
+FEED_FAN = f"{ADAFRUIT_IO_USERNAME}/feeds/fan"
+FEED_LED = f"{ADAFRUIT_IO_USERNAME}/feeds/led"
 
 # Global state
 fan_speed = 0
-rgb_color = "0,0,0"
+led_state = False
 last_send = 0
 client = None
 
@@ -77,17 +77,14 @@ def on_message(topic, msg):
                 fan_speed = 0
                 print("Fan: OFF")
     
-    elif 'rgb' in topic_str:
-        try:
-            r, g, b = map(int, value.split(','))
-            r, g, b = max(0, min(255, r)), max(0, min(255, g)), max(0, min(255, b))
-            np = neopixel.NeoPixel(pin2, 1)
-            np[0] = (r, g, b)
-            np.write()
-            rgb_color = f"{r},{g},{b}"
-            print(f"RGB: ({r}, {g}, {b})")
-        except Exception as e:
-            print(f"RGB error: {e}")
+    elif 'led' in topic_str:
+        if value.upper() == 'ON':
+            # Turn LED on (using pin2)
+            pin2.write_digital(1)
+            print("LED: ON")
+        else:
+            pin2.write_digital(0)
+            print("LED: OFF")
 
 def connect_mqtt():
     global client
@@ -97,7 +94,7 @@ def connect_mqtt():
         client.set_callback(on_message)
         client.connect()
         client.subscribe(FEED_FAN)
-        client.subscribe(FEED_RGB)
+        client.subscribe(FEED_LED)
         print("Connected to Adafruit IO")
         return True
     except Exception as e:

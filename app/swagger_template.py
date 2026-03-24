@@ -51,7 +51,7 @@ Authorization: Bearer <your_access_token>
         {"Bearer": []}
     ],
     "host": "localhost:5001",
-    "basePath": "/api",
+    "basePath": "",
     "schemes": ["http", "https"],
     "produces": ["application/json"],
     "consumes": ["application/json"],

@@ -1,5 +1,6 @@
 """Flask application factory and main entry point."""
 import os
+import logging
 from flask import Flask, jsonify
 from flask_migrate import Migrate
 from app.config import get_config
@@ -21,6 +22,14 @@ def create_app(config_class=None):
     
     app = Flask(__name__)
     app.config.from_object(config_class)
+    
+    # Configure logging for development
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    logger = logging.getLogger(__name__)
+    logger.info("Logging configured")
     
     # Initialize extensions
     _init_extensions(app)
