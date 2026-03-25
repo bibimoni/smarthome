@@ -59,29 +59,32 @@ function MainLayout() {
 
             {/* Nội dung của các trang con (Login, Dashboard, v.v.) */}
             <div className="page-container">
-               <div className="features-content">
-                  <div className="feature">
-                     <Fingerprint size={40} className="feature-icon" />
-                     <div className="feature-text">
-                        CHẠM THÔNG MINH,
-                        <br /> SỐNG TRỌN VẸN
+               {/* Chỉ hiện 3 icon tính năng nếu là trang chủ */}
+               {showSlide && (
+                  <div className="features-content">
+                     <div className="feature">
+                        <Fingerprint size={40} className="feature-icon" />
+                        <div className="feature-text">
+                           CHẠM THÔNG MINH,
+                           <br /> SỐNG TRỌN VẸN
+                        </div>
+                     </div>
+                     <div className="feature">
+                        <ThermometerSun size={40} className="feature-icon" />
+                        <div className="feature-text">
+                           THẤU HIỂU MÔI TRƯỜNG,
+                           <br /> LÀM CHỦ KHÔNG GIAN
+                        </div>
+                     </div>
+                     <div className="feature">
+                        <Share2 size={40} className="feature-icon" />
+                        <div className="feature-text">
+                           KẾT NỐI TỐI GIẢN,
+                           <br /> TỐI ƯU TIỆN ÍCH
+                        </div>
                      </div>
                   </div>
-                  <div className="feature">
-                     <ThermometerSun size={40} className="feature-icon" />
-                     <div className="feature-text">
-                        THẤU HIỂU MÔI TRƯỜNG,
-                        <br /> LÀM CHỦ KHÔNG GIAN
-                     </div>
-                  </div>
-                  <div className="feature">
-                     <Share2 size={40} className="feature-icon" />
-                     <div className="feature-text">
-                        KẾT NỐI TỐI GIẢN,
-                        <br /> TỐI ƯU TIỆN ÍCH
-                     </div>
-                  </div>
-               </div>
+               )}
                <Outlet />
             </div>
          </main>
