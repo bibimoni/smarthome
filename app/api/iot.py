@@ -156,14 +156,32 @@ def get_commands():
     }), 200
 
 
+@iot_bp.route('/command', methods=['GET'])
+def get_latest_command():
+    """
+    Get the latest command for YoloBit devices (simple polling).
+    This matches the iotgateway.py /api/get-commands endpoint.
+    Command is cleared after being retrieved.
+    
+    Returns:
+        200: Single command object
+    """
+    if mqtt_service:
+        cmd = mqtt_service.get_latest_command()
+    else:
+        cmd = {'command': '', 'value': ''}
+    
+    return jsonify({'command': cmd.get('command', '')}), 200
+
+
 @iot_bp.route('/command', methods=['POST'])
 def queue_command():
     """
     Queue a command for a device.
     
     Request Body:
-        command: Command type (e.g., FAN_ON, LED_OFF)
-        value: Command value
+        feed_key: Feed key (e.g., "fan", "led")
+        action: Action value (e.g., "ON", "OFF", "1", "0")
         
     Returns:
         200: Command queued
@@ -174,19 +192,19 @@ def queue_command():
     if not data:
         return jsonify({'error': 'No data provided'}), 400
     
-    command = data.get('command')
-    value = data.get('value')
+    feed_key = data.get('feed_key')
+    action = data.get('action')
     
-    if not command:
-        return jsonify({'error': 'Command is required'}), 400
+    if not feed_key:
+        return jsonify({'error': 'feed_key is required'}), 400
     
     if mqtt_service:
-        mqtt_service.queue_command(command, value)
+        mqtt_service.queue_command(feed_key, action)
     
     return jsonify({
         'message': 'Command queued',
-        'command': command,
-        'value': value
+        'feed_key': feed_key,
+        'action': action
     }), 200
 
 
