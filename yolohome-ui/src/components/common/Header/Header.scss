@@ -1,0 +1,84 @@
+.header-container {
+   position: relative;
+   width: 100%;
+   height: 90px; // Đủ cao để chứa logo 80px + offset 5px
+   font-family: 'Roboto', sans-serif;
+   border-bottom: 1px solid #e0e0e0;
+
+   // Style chung cho tất cả các item trong menu
+   .nav-item-home,
+   .nav-item-dashboard,
+   .nav-item-list,
+   .nav-item-login,
+   .nav-item-register {
+      position: relative;
+      display: inline-block;
+      padding: 5px;
+      font-size: 16px;
+      font-weight: 400; // Regular
+      color: #000000;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: color 0.3s ease;
+
+      &::after {
+         content: '';
+         position: absolute;
+         bottom: 0; // Nằm sát đáy của div
+         left: 50%; // Bắt đầu từ giữa
+         width: 0;   // Ban đầu không có chiều rộng (ẩn)
+         height: 2px; // Độ dày đường kẻ
+         background-color: #006699;
+         
+         transition: width 0.3s ease, left 0.3s ease;
+         transform: translateX(-50%);
+      }
+
+      &:hover {
+         //   color: #0056b3; // Hiệu ứng khi di chuột vào
+         font-weight: 700;
+         opacity: 0.8;
+         &::after {
+            width: 50%;
+            
+         }
+      }
+   }
+
+   // Logo: 80x80, x:16, y:5
+   .logo {
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      left: 16px;
+      top: 5px;
+      cursor: pointer;
+      object-fit: contain;
+   }
+
+   // Menu: 440x20, x:138, y:34, 3 components cách đều
+   .header-content-menu {
+      position: absolute;
+      width: 440px;
+      height: 20px;
+      left: 138px;
+      top: 34px;
+
+      display: flex;
+      justify-content: space-between; // Cách đều các thành phần con
+      align-items: center;
+   }
+
+   // Auth: 175x20, x:1265, y:34, 2 components cách đều
+   .header-content-auth {
+      position: absolute;
+      width: 175px;
+      height: 20px;
+      left: 1265px;
+      top: 34px;
+
+      display: flex;
+      justify-content: space-between; // Cách đều Đăng nhập & Đăng ký
+      align-items: center;
+   }
+}

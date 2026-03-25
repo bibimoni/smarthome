@@ -1,0 +1,96 @@
+:root {
+  // --- Giữ nguyên các biến màu sắc và font ---
+  --text: #6b6375;
+  --text-h: #08060d;
+  --bg: #fff;
+  --border: #e5e4e7;
+  --code-bg: #f4f3ec;
+  --accent: #aa3bff;
+  --accent-bg: rgba(170, 59, 255, 0.1);
+  --accent-border: rgba(170, 59, 255, 0.5);
+  --social-bg: rgba(244, 243, 236, 0.5);
+  --shadow: rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+
+  --sans: 'Roboto', sans-serif;
+  --heading: 'Roboto', sans-serif;
+  --mono: ui-monospace, Consolas, monospace;
+
+  font: 18px/145% var(--sans);
+  letter-spacing: 0.18px;
+  color-scheme: light dark;
+  color: var(--text);
+  background: #f0f0f0; // Màu nền bên ngoài frame chính (tùy chọn)
+  
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #ffffff;           /* Màu nền đã chuyển thành trắng */
+    --text: #374151;        /* Điều chỉnh chữ đậm hơn để dễ đọc trên nền trắng */
+    --text-h: #111827;      /* Tiêu đề đậm hẳn */
+    
+    --border: #e5e7eb;      /* Đổi màu border cho hợp với nền sáng */
+    --code-bg: #f3f4f6;     /* Màu nền code sáng hơn */
+    
+    /* Giữ nguyên các thông số Accent nếu bạn thích màu tím nổi bật */
+    --accent: #c084fc;
+    --accent-bg: rgba(192, 132, 252, 0.15);
+    --accent-border: rgba(192, 132, 252, 0.5);
+    --social-bg: rgba(229, 231, 235, 0.5);
+    --shadow: rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  }
+
+  #social .button-icon {
+    filter: none; /* Tắt bộ lọc invert vì nền bây giờ đã sáng */
+  }
+}
+
+body {
+  margin: 0;
+  display: flex;
+  justify-content: center; // Căn giữa toàn bộ trang theo chiều ngang
+  align-items: flex-start; // Bắt đầu từ đỉnh trang
+  background-color: var(--border); // Màu nền để phân biệt với frame 1440
+}
+
+#root {
+  // CẤU HÌNH KÍCH THƯỚC CHUẨN 1440x1024
+  width: 100%;
+  height: 1024px;
+  min-width: 1440px;
+  min-height: 1024px;
+  
+  background: var(--bg);
+  margin: 0 auto;
+  position: relative; // CỰC KỲ QUAN TRỌNG: Để Header (position absolute) bám vào đây
+  overflow: hidden;   // Ngăn chặn scrollbar không mong muốn nếu nội dung tràn
+  
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  box-shadow: var(--shadow); // Thêm đổ bóng để nhìn rõ frame thiết kế
+}
+
+// --- Các phần heading giữ nguyên style ---
+h1, h2 {
+  font-family: var(--heading);
+  font-weight: 500;
+  color: var(--text-h);
+}
+
+h1 {
+  font-size: 56px;
+  letter-spacing: -1.68px;
+  margin: 32px 0;
+}
+
+h2 {
+  font-size: 24px;
+  line-height: 118%;
+  letter-spacing: -0.24px;
+  margin: 0 0 8px;
+}

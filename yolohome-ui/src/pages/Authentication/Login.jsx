@@ -1,10 +1,13 @@
-import React, { useState } from 'react'
-import axiosClient from '../api/axiosClient'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import axiosClient from '../../api/axiosClient'
+import './Login.scss'
 
-const Login = () => {
+function Login() {
    const [email, setEmail] = useState('')
    const [password, setPassword] = useState('')
    const [error, setError] = useState('')
+   const navigate = useNavigate()
 
    const handleLogin = async (e) => {
       e.preventDefault()
@@ -13,17 +16,16 @@ const Login = () => {
 
          // Lưu token vào localStorage
          localStorage.setItem('access_token', response.data.access_token)
-         alert('Đăng nhập thành công!')
 
-         // Chuyển hướng sang Dashboard (sau khi bạn làm trang Dashboard)
-         window.location.href = '/dashboard'
+         // Chuyển hướng sang Home
+         navigate('/')
       } catch {
          setError('Sai email hoặc mật khẩu!')
       }
    }
 
    return (
-      <div style={{ maxWidth: '300px', margin: '100px auto', textAlign: 'center' }}>
+      <div className="login-container">
          <h2>YoloHome Login</h2>
          <form onSubmit={handleLogin}>
             <input
@@ -32,7 +34,6 @@ const Login = () => {
                value={email}
                onChange={(e) => setEmail(e.target.value)}
                required
-               style={{ width: '100%', marginBottom: '10px', padding: '8px' }}
             />
             <input
                type="password"
@@ -40,12 +41,11 @@ const Login = () => {
                value={password}
                onChange={(e) => setPassword(e.target.value)}
                required
-               style={{ width: '100%', marginBottom: '10px', padding: '8px' }}
             />
-            {error && <p style={{ color: 'red' }}>{error}</p>}
-            <button type="submit" style={{ width: '100%', padding: '10px', cursor: 'pointer' }}>
-               Đăng nhập
-            </button>
+
+            {error && <p className="error-message">{error}</p>}
+
+            <button type="submit">Đăng nhập</button>
          </form>
       </div>
    )

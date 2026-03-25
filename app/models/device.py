@@ -2,7 +2,6 @@
 from datetime import datetime
 from app.extensions import db
 
-
 class Sensor(db.Model):
     """Sensor model for input devices (temperature, humidity, light, PIR)."""
     
@@ -54,13 +53,15 @@ class Sensor(db.Model):
             Sensor.TYPE_PIR: (0, 1),
         }
         return ranges.get(sensor_type, (None, None))
-    
+
     def get_latest_data(self) -> 'SensorData':
         """Get the latest sensor data reading."""
+        from app.models.data import SensorData
         return SensorData.query.filter_by(sensor_id=self.id).order_by(SensorData.recorded_at.desc()).first()
     
     def get_data_in_range(self, start_time: datetime, end_time: datetime) -> list:
         """Get sensor data within a time range."""
+        from app.models.data import SensorData
         return SensorData.query.filter(
             SensorData.sensor_id == self.id,
             SensorData.recorded_at >= start_time,
