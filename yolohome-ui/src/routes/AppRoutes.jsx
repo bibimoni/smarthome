@@ -9,6 +9,10 @@ import Register from '@pages/Authentication/Register.jsx'
 import Login from '@pages/Authentication/Login.jsx'
 import ForgetPassword from '@pages/Authentication/ForgetPassword.jsx'
 
+// Scene (UC-5) --------------------------------------------------------------------
+import SceneList from '@pages/Scene/SceneList.jsx'
+import SceneCreate from '@pages/Scene/SceneCreate.jsx'
+
 export const router = createBrowserRouter([
    {
       path: '/',
@@ -18,6 +22,8 @@ export const router = createBrowserRouter([
          { path: 'register', element: <Register /> },
          { path: 'login', element: <Login /> },
          { path: 'forget-password', element: <ForgetPassword /> },
+         { path: 'scenes', element: <SceneList /> },
+         { path: 'scenes/create', element: <SceneCreate /> },
       ],
    },
 ])
