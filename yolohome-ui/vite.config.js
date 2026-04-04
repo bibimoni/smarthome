@@ -12,6 +12,7 @@ export default defineConfig({
       '@api': '/src/api',
       '@routes': '/src/routes',
       '@assets': '/src/assets',
+      '@mock': '/src/mock',
     }
   }
 })

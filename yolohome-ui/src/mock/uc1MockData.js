@@ -1,0 +1,115 @@
+export const uc1Scenarios = {
+  realtime: {
+    id: 'realtime',
+    tabLabel: 'Màn hình 1 · Dashboard thời gian thực',
+    badge: 'Mô phỏng UC_1',
+    headline: 'Môi trường theo thời gian thực',
+    subtext: 'Dữ liệu cảm biến đang được cập nhật liên tục với chu kỳ 5 giây.',
+    unit: 'C',
+    controlActions: ['Trang chủ', 'Dashboard', 'Lịch sử', 'Tải lại'],
+    cards: [
+      { label: 'Nhiệt độ', value: '27°C', note: 'Cập nhật 5 giây trước', icon: '🌡' },
+      { label: 'Độ ẩm', value: '61%', note: 'Cập nhật 5 giây trước', icon: '💧' },
+      { label: 'Ánh sáng', value: '420', note: 'Cập nhật 5 giây trước', icon: '☀' },
+      { label: 'Hồng ngoại', value: 'Có', note: 'Cập nhật 5 giây trước', icon: '📡' },
+    ],
+    supportTitle: 'Tình huống hỗ trợ',
+    rightMode: 'overview',
+    supportPanel: {
+      title: 'Bảng điều khiển',
+      controls: ['°C', '°F', 'Lịch sử'],
+      cards: [
+        { label: 'Nguồn dữ liệu', value: '4 cảm biến', note: 'Đồng bộ ổn định' },
+        { label: 'Auto refresh', value: '5s', note: 'Đang hoạt động' },
+      ],
+      chartBars: [58, 66, 72, 64, 78],
+      historyRows: [
+        { time: '09:00', value: '26°C / 59%' },
+        { time: '09:05', value: '27°C / 61%' },
+        { time: '09:10', value: '28°C / 60%' },
+      ],
+    },
+  },
+  unitHistory: {
+    id: 'unitHistory',
+    tabLabel: 'Màn hình 2 · Đổi đơn vị và lịch sử',
+    badge: 'Đổi đơn vị hiển thị',
+    headline: 'Dữ liệu sau khi đổi đơn vị',
+    subtext: 'Người dùng chuyển đơn vị từ Celsius sang Fahrenheit và xem lại lịch sử dữ liệu.',
+    unit: 'F',
+    controlActions: ['°C', '°F', 'Lịch sử'],
+    cards: [
+      { label: 'Nhiệt độ', value: '80.6°F', note: 'Đơn vị mới', icon: '🌡' },
+      { label: 'Độ ẩm', value: '61%', note: 'Giữ nguyên', icon: '💧' },
+    ],
+    supportTitle: 'Lịch sử dữ liệu',
+    rightMode: 'history',
+    supportPanel: {
+      title: 'Lịch sử dữ liệu',
+      subtitle: 'Biểu đồ và bảng thời gian gần nhất sau khi đổi đơn vị.',
+      chartBars: [62, 75, 88, 77, 95],
+      historyRows: [
+        { time: '09:00', value: '78.8°F / 59%' },
+        { time: '09:05', value: '80.6°F / 61%' },
+        { time: '09:10', value: '82.4°F / 60%' },
+      ],
+    },
+  },
+  sensorError: {
+    id: 'sensorError',
+    tabLabel: 'Màn hình 3 · Cảm biến lỗi',
+    badge: 'Một cảm biến trả dữ liệu không hợp lệ',
+    headline: 'Dữ liệu hiện tại',
+    subtext: 'Hệ thống bỏ qua cảm biến lỗi và vẫn tiếp tục hiển thị các cảm biến còn lại.',
+    unit: 'C',
+    controlActions: ['Dashboard', 'Tải lại'],
+    cards: [
+      { label: 'Nhiệt độ', value: '27°C', note: 'Bình thường', icon: '🌡' },
+      { label: 'Độ ẩm', value: '61%', note: 'Bình thường', icon: '💧' },
+      { label: 'Ánh sáng', value: '--', note: 'Dữ liệu cảm biến không hợp lệ', icon: '⚠', state: 'danger' },
+      { label: 'Hồng ngoại', value: 'Có', note: 'Tiếp tục hiển thị', icon: '📡' },
+    ],
+    supportTitle: 'Trạng thái xử lý',
+    rightMode: 'status',
+    supportPanel: {
+      title: 'Trạng thái xử lý',
+      statusRows: [
+        { label: 'Cảm biến ánh sáng', value: 'Bỏ qua', tone: 'danger' },
+        { label: 'Cảm biến còn lại', value: 'Tiếp tục hiển thị', tone: 'success' },
+        { label: 'Kênh cảnh báo', value: 'Đã ghi log lỗi nhẹ', tone: 'neutral' },
+      ],
+    },
+  },
+  reload: {
+    id: 'reload',
+    tabLabel: 'Màn hình 4 · Tải lại dữ liệu',
+    badge: 'Tải lại dữ liệu',
+    headline: 'Lấy dữ liệu mới nhất',
+    subtext: 'Hủy bộ đếm cũ và tải dữ liệu mới ngay.',
+    unit: 'C',
+    controlActions: ['Tải lại', 'Dashboard'],
+    cards: [
+      { label: 'Nhiệt độ', value: '28°C', note: 'Vừa cập nhật', icon: '🌡' },
+      { label: 'Độ ẩm', value: '60%', note: 'Vừa cập nhật', icon: '💧' },
+      { label: 'Ánh sáng', value: '450', note: 'Vừa cập nhật', icon: '☀' },
+      { label: 'Hồng ngoại', value: 'Không', note: 'Vừa cập nhật', icon: '📡' },
+    ],
+    supportTitle: 'Phiên tải lại',
+    rightMode: 'reload',
+    supportPanel: {
+      title: 'Phiên tải lại gần nhất',
+      loadingLabel: 'Đang tải',
+      statusRows: [
+        { label: 'Bộ đếm cũ', value: 'Đã hủy' },
+        { label: 'Lần tải mới', value: '09:16' },
+        { label: 'Trạng thái', value: 'Thành công' },
+      ],
+      historyRows: [
+        { time: '09:16', value: 'Dữ liệu mới nhất đã hiển thị' },
+        { time: '09:16', value: 'Dashboard làm mới thành công' },
+      ],
+    },
+  },
+}
+
+export const uc1Tabs = Object.values(uc1Scenarios).map(({ id, tabLabel }) => ({ id, label: tabLabel }))

@@ -13,85 +13,71 @@ import sm5 from '@assets/common/sm5.jpg'
 import { Fingerprint, ThermometerSun, Share2 } from 'lucide-react'
 
 function MainLayout() {
-   const location = useLocation()
-   const showSlide = location.pathname === '/'
+  const location = useLocation()
+  const showSlide = location.pathname === '/'
 
-   const images = [sm1, sm2, sm3, sm4, sm5]
-   const [currentIndex, setCurrentIndex] = useState(0)
-   const [fade, setFade] = useState(false)
+  const images = [sm1, sm2, sm3, sm4, sm5]
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [fade, setFade] = useState(false)
 
-   // Tự động chuyển slide mỗi 5s
-   useEffect(() => {
-      if (!showSlide) return
-      const interval = setInterval(() => {
-         handleNext()
-      }, 5000)
-      return () => clearInterval(interval)
-   }, [currentIndex, showSlide])
-
-   const handleNext = () => {
+  useEffect(() => {
+    if (!showSlide) return
+    const interval = setInterval(() => {
       setFade(true)
       setTimeout(() => {
-         setCurrentIndex((prev) => (prev + 1) % images.length)
-         setFade(false)
+        setCurrentIndex((prev) => (prev + 1) % images.length)
+        setFade(false)
       }, 500)
-   }
+    }, 5000)
+    return () => clearInterval(interval)
+  }, [currentIndex, showSlide])
 
-   return (
-      <div className="main-layout">
-         <Header />
+  return (
+    <div className="main-layout">
+      <Header />
 
-         <main className="main-content">
-            {/* Slideshow chỉ hiện ở Trang chủ */}
-            {showSlide && (
-               <div className="slideshow-container">
-                  <img
-                     src={images[currentIndex]}
-                     alt={`Slide ${currentIndex + 1}`}
-                     className={`slide-image ${fade ? 'fade-out' : 'fade-in'}`}
-                  />
-                  <div className="slide-overlay">
-                     <h2>Chào mừng đến với YoloHome</h2>
-                     <p>Hệ thống quản lý nhà thông minh hiện đại</p>
-                  </div>
-               </div>
-            )}
-
-            {/* Nội dung của các trang con (Login, Dashboard, v.v.) */}
-            <div className="page-container">
-               {/* Chỉ hiện 3 icon tính năng nếu là trang chủ */}
-               {showSlide && (
-                  <div className="features-content">
-                     <div className="feature">
-                        <Fingerprint size={40} className="feature-icon" />
-                        <div className="feature-text">
-                           CHẠM THÔNG MINH,
-                           <br /> SỐNG TRỌN VẸN
-                        </div>
-                     </div>
-                     <div className="feature">
-                        <ThermometerSun size={40} className="feature-icon" />
-                        <div className="feature-text">
-                           THẤU HIỂU MÔI TRƯỜNG,
-                           <br /> LÀM CHỦ KHÔNG GIAN
-                        </div>
-                     </div>
-                     <div className="feature">
-                        <Share2 size={40} className="feature-icon" />
-                        <div className="feature-text">
-                           KẾT NỐI TỐI GIẢN,
-                           <br /> TỐI ƯU TIỆN ÍCH
-                        </div>
-                     </div>
-                  </div>
-               )}
-               <Outlet />
+      <main className="main-content">
+        {showSlide && (
+          <div className="slideshow-shell">
+            <div className="slideshow-container">
+              <img
+                src={images[currentIndex]}
+                alt={`Slide ${currentIndex + 1}`}
+                className={`slide-image ${fade ? 'fade-out' : 'fade-in'}`}
+              />
+              <div className="slide-overlay">
+                <span className="slide-overlay__eyebrow">YoloHome · Smart living</span>
+                <h2>Chào mừng đến với hệ thống nhà thông minh hiện đại</h2>
+                <p>Quản lý môi trường, thiết bị và kịch bản tự động hóa trong một dashboard duy nhất.</p>
+              </div>
             </div>
-         </main>
+          </div>
+        )}
 
-         <Footer />
-      </div>
-   )
+        <div className="page-container">
+          {showSlide && (
+            <div className="features-content">
+              <div className="feature">
+                <Fingerprint size={40} className="feature-icon" />
+                <div className="feature-text">CHẠM THÔNG MINH, <br /> SỐNG TRỌN VẸN</div>
+              </div>
+              <div className="feature">
+                <ThermometerSun size={40} className="feature-icon" />
+                <div className="feature-text">THẤU HIỂU MÔI TRƯỜNG, <br /> LÀM CHỦ KHÔNG GIAN</div>
+              </div>
+              <div className="feature">
+                <Share2 size={40} className="feature-icon" />
+                <div className="feature-text">KẾT NỐI TỐI GIẢN, <br /> TỐI ƯU TIỆN ÍCH</div>
+              </div>
+            </div>
+          )}
+          <Outlet />
+        </div>
+      </main>
+
+      <Footer />
+    </div>
+  )
 }
 
 export default MainLayout

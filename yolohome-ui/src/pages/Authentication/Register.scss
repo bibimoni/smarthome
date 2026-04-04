@@ -1,0 +1,130 @@
+.register-container {
+   max-width: 400;
+   text-align: left;
+   font-family: Arial, sans-serif;
+   .banner {
+      width: 100%;
+      height: 200px;
+      background-color: #111e6c;
+      opacity: 0.8;
+      h1 {
+         left: 138px;
+         padding-top: 40px;
+         font-weight: 700;
+         margin: 0;
+         text-transform: uppercase;
+         text-align: left;
+         color: white;
+      }
+   }
+
+   .register-content {
+      width: 600px;
+      align-items: flex-start;
+
+      h2 {
+         padding: 10px 0;
+      }
+
+      .instruction-text {
+         position: relative;
+         left: 138px;
+         font-size: 14px;
+         color: #808080;
+      }
+   }
+   h2 {
+      top: 10px;
+      left: 138px;
+      font-weight: 700;
+      margin: 0px;
+      text-align: left;
+      color: #333333;
+      margin-bottom: 10px;
+   }
+
+   form {
+      position: relative;
+      left: 138px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+
+      .input-row {
+         display: flex;
+         gap: 30px; // Khoảng cách giữa 2 cột
+         width: 100%;
+         margin-bottom: 20px;
+      }
+
+      .input-group {
+        flex: 1;
+         margin-bottom: 0px;
+         label {
+            display: block;
+            .required {
+               color: red;
+            }
+         }
+
+         input {
+            background-color: #fff;
+            color: #000;
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            box-sizing: border-box; // Giúp padding không làm tràn chiều rộng
+
+            &:focus {
+               border-color: #111e6c;
+               outline: none;
+            }
+         }
+      }
+
+      .error-message {
+         color: red;
+         font-size: 0.9rem;
+         margin-bottom: 10px;
+      }
+
+      .form-actions {
+         display: flex;
+         justify-content: space-between;
+         align-items: center;
+         width: 100%;
+         .primary-actions {
+            display: flex;
+            gap: 15px;
+
+            .register-btn {
+               background-color: #111e6c; // Xanh đậm
+               color: white;
+               padding: 12px 24px;
+               border: none;
+               border-radius: 20px; // Bo tròn mạnh
+               text-transform: uppercase; // In hoa
+               cursor: pointer;
+               transition: background-color 0.3s ease;
+
+               &:hover {
+                  background-color: #111e6c; // Tối hơn khi hover
+                  opacity: 0.9;
+               }
+            }
+            .login-account {
+               background-color: transparent;
+               color: #111e6c; // Xanh đậm
+               opacity: 0.8;
+               border: none;
+               font-weight: 700;
+               font-size: 14px;
+               text-transform: uppercase; // In hoa
+               cursor: pointer;
+               padding: 12px 0; // Căn giữa với nút Login
+            }
+         }
+      }
+   }
+}

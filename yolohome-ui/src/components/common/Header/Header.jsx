@@ -1,42 +1,44 @@
 import './Header.scss'
 import logo from '@assets/common/logoBK.svg'
-import { useNavigate } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 
 function Header() {
-   const navigate = useNavigate()
-   const handleHome = () => {
-      navigate('/')
-   }
-   const handleLogin = () => {
-      navigate('/login')
-   }
-   const handleRegister = () => {
-      navigate('/register')
-   }
-   return (
-      <div className="header-container">
-         <img src={logo} alt="LogoBK" className="logo" onClick={handleHome} />
-         <div className="header-content-menu">
-            <div className="nav-item-home" onClick={handleHome}>
-               Trang chủ
-            </div>
-            <div className="nav-item-dashboard" onClick={handleHome}>
-               Bảng điều khiển
-            </div>
-            <div className="nav-item-list" onClick={handleHome}>
-               Danh sách thiết bị
-            </div>
-         </div>
-         <div className="header-content-auth">
-            <div className="nav-item-login" onClick={handleLogin}>
-               Đăng nhập
-            </div>
-            <div className="nav-item-register" onClick={handleRegister}>
-               Đăng ký
-            </div>
-         </div>
+  const navigate = useNavigate()
+
+  return (
+    <header className="header-container">
+      <div className="header-shell">
+        <button type="button" className="brand-mark" onClick={() => navigate('/')}>
+          <img src={logo} alt="LogoBK" className="logo" />
+          <div className="brand-copy">
+            <strong>YoloHome</strong>
+            <span>Smart house control center</span>
+          </div>
+        </button>
+
+        <nav className="header-content-menu">
+          <NavLink to="/" end className={({ isActive }) => `nav-link ${isActive ? 'is-active' : ''}`}>
+            Trang chủ
+          </NavLink>
+          <NavLink to="/dashboard" className={({ isActive }) => `nav-link ${isActive ? 'is-active' : ''}`}>
+            Bảng điều khiển
+          </NavLink>
+          <NavLink to="/device-control" className={({ isActive }) => `nav-link ${isActive ? 'is-active' : ''}`}>
+            Danh sách thiết bị
+          </NavLink>
+        </nav>
+
+        <div className="header-content-auth">
+          <NavLink to="/login" className={({ isActive }) => `nav-link nav-link--minor ${isActive ? 'is-active' : ''}`}>
+            Đăng nhập
+          </NavLink>
+          <NavLink to="/register" className={({ isActive }) => `nav-link nav-link--minor ${isActive ? 'is-active' : ''}`}>
+            Đăng ký
+          </NavLink>
+        </div>
       </div>
-   )
+    </header>
+  )
 }
 
 export default Header

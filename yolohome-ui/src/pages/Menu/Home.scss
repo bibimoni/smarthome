@@ -1,0 +1,40 @@
+.home-shortcuts {
+  max-width: 1280px;
+  margin: 32px auto 0;
+  padding: 28px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+
+  &__eyebrow {
+    display: inline-block;
+    margin-bottom: 8px;
+    font-size: 12px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  h2 {
+    margin: 0 0 10px;
+    font-size: 28px;
+  }
+
+  p {
+    margin: 0;
+    max-width: 720px;
+    color: rgba(255, 255, 255, 0.72);
+  }
+
+  &__actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 900px) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
