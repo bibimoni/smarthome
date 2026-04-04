@@ -33,6 +33,8 @@ class Config:
     JWT_COOKIE_CSRF_PROTECT = False
     # Allow integer identity (user.id)
     JWT_JSON_KEY = 'identity'
+    # Accept token with or without "Bearer " prefix
+    JWT_HEADER_TYPE = None
     
     # Google OAuth (Optional - leave empty for development)
     GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '')
@@ -49,7 +51,7 @@ class Config:
     ADAFRUIT_IO_USERNAME = os.environ.get('ADAFRUIT_IO_USERNAME', 'quanghung2405')
     ADAFRUIT_IO_KEY = os.environ.get(
         'ADAFRUIT_IO_KEY',
-        'aio_anJO06oMkhLtJbAYhp4yRGMmoFoe'
+        'aio_VsGq45lw71t0aqYbVhs34pgpOvEL'  
     )
     
     # Application
@@ -61,7 +63,7 @@ class Config:
 class DevelopmentConfig(Config):
     """Development configuration."""
     DEBUG = True
-    SQLALCHEMY_ECHO = True
+    SQLALCHEMY_ECHO = False  # Disable SQL query logging
 
 
 class TestingConfig(Config):
