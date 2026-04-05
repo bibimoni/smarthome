@@ -11,7 +11,7 @@ import {
   TriangleAlert,
   Activity,
 } from 'lucide-react'
-import { uc1Scenarios, uc1Tabs } from '@mock/uc1MockData.js'
+import { uc1Scenarios, uc1Tabs } from '@mock/uc1MockData.jsx'
 import './Dashboard.scss'
 
 const iconMap = {
@@ -33,7 +33,7 @@ function Dashboard() {
 
       <div className="uc-page-head">
         <div>
-          <span className="uc-page-head__eyebrow">UC_1 · Giám sát môi trường thời gian thực</span>
+          <span className="uc-page-head__eyebrow">UC 1 · Giám sát môi trường thời gian thực</span>
           <h1>Dashboard giám sát cảm biến</h1>
           <p>Đủ 4 màn hình mockup bằng mock data, hiển thị theo từng tình huống sử dụng.</p>
         </div>

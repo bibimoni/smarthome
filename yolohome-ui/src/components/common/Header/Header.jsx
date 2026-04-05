@@ -26,6 +26,9 @@ function Header() {
           <NavLink to="/device-control" className={({ isActive }) => `nav-link ${isActive ? 'is-active' : ''}`}>
             Danh sách thiết bị
           </NavLink>
+          <NavLink to="/scenes" className={({ isActive }) => `nav-link ${isActive ? 'is-active' : ''}`}>
+            Tạo kịch bản
+          </NavLink>
         </nav>
 
         <div className="header-content-auth">
