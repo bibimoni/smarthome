@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { mockScenes } from '../../data/mockData'
+import { mockScenes } from '../../data/uc5MockData'
 import { Play, Trash2, Plus, Clapperboard } from 'lucide-react'
 import './SceneList.scss'
 

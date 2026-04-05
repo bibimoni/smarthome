@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { mockActuators, mockSensors, getActionOptions, operatorOptions } from '../../data/mockData'
+import { mockActuators, mockSensors, getActionOptions, operatorOptions } from '../../data/uc5MockData'
 import {
    ArrowLeft,
    Plus,

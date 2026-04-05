@@ -11,7 +11,7 @@ import {
   ArrowLeftRight,
   Save,
 } from 'lucide-react'
-import { uc3Scenarios, uc3Tabs } from '@mock/uc3MockData.js'
+import { uc3Scenarios, uc3Tabs } from '@mock/uc3MockData.jsx'
 import './DeviceControl.scss'
 
 const deviceIconMap = {
@@ -31,7 +31,7 @@ function DeviceControl() {
 
       <div className="uc-page-head">
         <div>
-          <span className="uc-page-head__eyebrow">UC_3 · Điều khiển thiết bị thủ công và ghi đè tự động</span>
+          <span className="uc-page-head__eyebrow">UC 3 · Điều khiển thiết bị thủ công và ghi đè tự động</span>
           <h1>Thiết bị đầu ra &amp; event log</h1>
           <p>Đủ 5 màn hình mockup bằng mock data, chia theo từng tình huống thao tác thực tế.</p>
         </div>
@@ -183,7 +183,7 @@ function DeviceControl() {
         </div>
 
         <aside className="uc3-side glass-panel">
-          <div className="panel-chip">Thông tin hỗ trợ UC_3</div>
+          <div className="panel-chip">Thông tin hỗ trợ UC 3</div>
 
           <div className="side-card glass-panel glass-panel--inner">
             <div className="section-head section-head--compact">
