@@ -10,14 +10,14 @@ import time
 import network
 import ujson
 import umqtt.simple as mqtt
-
+from aiot_rgbled import RGBLed
 # Configuration
-WIFI_SSID = "YOUR_WIFI_SSID"
-WIFI_PASSWORD = "YOUR_WIFI_PASSWORD"
+WIFI_SSID = "OPPO A78"
+WIFI_PASSWORD = "373152361"
 ADAFRUIT_IO_USERNAME = "quanghung2405"
-ADAFRUIT_IO_KEY = "aio_VsGq45lw71t0aqYbVhs34pgpOvEL"
+ADAFRUIT_IO_KEY = ""
 DEVICE_LOCATION = "living-room"
-READ_INTERVAL = 5
+READ_INTERVAL = 10
 
 # Feed names (must match backend device_service.py DEFAULT_SENSORS/DEFAULT_ACTUATORS)
 FEED_TEMP = f"{ADAFRUIT_IO_USERNAME}/feeds/temperature"
@@ -28,10 +28,10 @@ FEED_LED = f"{ADAFRUIT_IO_USERNAME}/feeds/led"
 
 # Global state
 fan_speed = 0
-led_state = False
+led_state = "OFF"
 last_send = 0
 client = None
-
+rgb_led = RGBLed(pin2.pin, 4)
 # Initialize sensors
 dht20 = DHT20()
 lcd1602 = LCD1602()
@@ -80,12 +80,11 @@ def on_message(topic, msg):
     elif 'led' in topic_str:
         if value.upper() == 'ON':
             # Turn LED on (using pin2)
-            pin2.write_digital(1)
-            print("LED: ON")
+            rgb_led.show(1, hex_to_rgb("#00ff00"))
+            led_state = "ON"
         else:
-            pin2.write_digital(0)
-            print("LED: OFF")
-
+            rgb_led.show(1, hex_to_rgb("#000000"))
+            led_state = "OFF"
 def connect_mqtt():
     global client
     try:

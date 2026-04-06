@@ -14,7 +14,7 @@ thresholds_bp = Blueprint('thresholds', __name__)
 def get_rules():
     """
     Get all threshold rules.
-    
+
     UC-2: Configure environmental thresholds
     ---
     tags:
@@ -44,9 +44,9 @@ def get_rules():
     is_active = request.args.get('is_active')
     if is_active is not None:
         is_active = is_active.lower() == 'true'
-    
+
     rules = ThresholdService.get_all_rules(is_active)
-    
+
     return jsonify({
         'rules': [r.to_dict() for r in rules],
         'count': len(rules)
@@ -58,7 +58,7 @@ def get_rules():
 def get_rule(rule_id):
     """
     Get a specific threshold rule.
-    
+
     ---
     tags:
       - Thresholds
@@ -84,10 +84,10 @@ def get_rule(rule_id):
           $ref: "#/definitions/Error"
     """
     rule = ThresholdService.get_rule_by_id(rule_id)
-    
+
     if not rule:
         return jsonify({'error': 'Rule not found'}), 404
-    
+
     return jsonify({'rule': rule.to_dict()}), 200
 
 
@@ -96,7 +96,7 @@ def get_rule(rule_id):
 def get_rule_status(rule_id):
     """
     Get status of a threshold rule including current evaluation.
-    
+
     ---
     tags:
       - Thresholds
@@ -122,10 +122,10 @@ def get_rule_status(rule_id):
           $ref: "#/definitions/Error"
     """
     status = ThresholdService.get_rule_status(rule_id)
-    
+
     if not status:
         return jsonify({'error': 'Rule not found'}), 404
-    
+
     return jsonify({'status': status}), 200
 
 
@@ -134,7 +134,7 @@ def get_rule_status(rule_id):
 def get_rules_for_sensor(sensor_id):
     """
     Get all rules for a specific sensor.
-    
+
     ---
     tags:
       - Thresholds
@@ -162,7 +162,7 @@ def get_rules_for_sensor(sensor_id):
               type: integer
     """
     rules = ThresholdService.get_rules_for_sensor(sensor_id)
-    
+
     return jsonify({
         'sensor_id': sensor_id,
         'rules': [r.to_dict() for r in rules],
@@ -175,7 +175,7 @@ def get_rules_for_sensor(sensor_id):
 def get_rules_for_actuator(actuator_id):
     """
     Get all rules controlling a specific actuator.
-    
+
     ---
     tags:
       - Thresholds
@@ -203,7 +203,7 @@ def get_rules_for_actuator(actuator_id):
               type: integer
     """
     rules = ThresholdService.get_rules_for_actuator(actuator_id)
-    
+
     return jsonify({
         'actuator_id': actuator_id,
         'rules': [r.to_dict() for r in rules],
@@ -216,7 +216,7 @@ def get_rules_for_actuator(actuator_id):
 def create_rule():
     """
     Create a new threshold rule.
-    
+
     UC-2: Configure environmental thresholds
     ---
     tags:
@@ -272,10 +272,10 @@ def create_rule():
           $ref: "#/definitions/Error"
     """
     data = request.get_json()
-    
+
     if not data:
         return jsonify({'error': 'No data provided'}), 400
-    
+
     rule, error = ThresholdService.create_rule(
         sensor_id=data.get('sensor_id'),
         operator=data.get('operator'),
@@ -284,10 +284,10 @@ def create_rule():
         action_value=data.get('action_value'),
         description=data.get('description')
     )
-    
+
     if error:
         return jsonify({'error': error}), 400
-    
+
     return jsonify({
         'message': 'Rule created',
         'rule': rule.to_dict()
@@ -299,7 +299,7 @@ def create_rule():
 def update_rule(rule_id):
     """
     Update a threshold rule.
-    
+
     UC-2: Configure environmental thresholds
     ---
     tags:
@@ -349,10 +349,10 @@ def update_rule(rule_id):
           $ref: "#/definitions/Error"
     """
     data = request.get_json()
-    
+
     if not data:
         return jsonify({'error': 'No data provided'}), 400
-    
+
     rule, error = ThresholdService.update_rule(
         rule_id=rule_id,
         operator=data.get('operator'),
@@ -361,10 +361,10 @@ def update_rule(rule_id):
         description=data.get('description'),
         is_active=data.get('is_active')
     )
-    
+
     if error:
         return jsonify({'error': error}), 404 if 'not found' in error else 400
-    
+
     return jsonify({
         'message': 'Rule updated',
         'rule': rule.to_dict()
@@ -376,7 +376,7 @@ def update_rule(rule_id):
 def delete_rule(rule_id):
     """
     Delete a threshold rule.
-    
+
     UC-2: Configure environmental thresholds
     ---
     tags:
@@ -403,10 +403,10 @@ def delete_rule(rule_id):
           $ref: "#/definitions/Error"
     """
     success, error = ThresholdService.delete_rule(rule_id)
-    
+
     if error:
         return jsonify({'error': error}), 404
-    
+
     return jsonify({'message': 'Rule deleted'}), 200
 
 
@@ -415,7 +415,7 @@ def delete_rule(rule_id):
 def toggle_rule(rule_id):
     """
     Toggle a rule active/inactive.
-    
+
     UC-2: Configure environmental thresholds (activate/deactivate)
     ---
     tags:
@@ -444,10 +444,10 @@ def toggle_rule(rule_id):
           $ref: "#/definitions/Error"
     """
     rule, error = ThresholdService.toggle_rule(rule_id)
-    
+
     if error:
         return jsonify({'error': error}), 404
-    
+
     return jsonify({
         'message': f'Rule {"activated" if rule.is_active else "deactivated"}',
         'rule': rule.to_dict()
@@ -459,7 +459,7 @@ def toggle_rule(rule_id):
 def evaluate_rule(rule_id):
     """
     Evaluate a rule against current sensor value.
-    
+
     ---
     tags:
       - Thresholds
@@ -485,7 +485,7 @@ def evaluate_rule(rule_id):
               type: string
     """
     condition_met, action = ThresholdService.evaluate_rule(rule_id)
-    
+
     return jsonify({
         'rule_id': rule_id,
         'condition_met': condition_met,
@@ -498,7 +498,7 @@ def evaluate_rule(rule_id):
 def evaluate_all_rules():
     """
     Evaluate all active rules and execute actions where conditions are met.
-    
+
     ---
     tags:
       - Thresholds
@@ -519,7 +519,7 @@ def evaluate_all_rules():
                 type: object
     """
     results = ThresholdService.evaluate_all_rules()
-    
+
     return jsonify({
         'message': 'All rules evaluated',
         'results': results

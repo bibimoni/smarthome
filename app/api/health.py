@@ -10,7 +10,7 @@ health_bp = Blueprint('health', __name__)
 def health_check():
     """
     Health check endpoint for Docker and monitoring.
-    
+
     ---
     tags:
       - Health
@@ -52,16 +52,14 @@ def health_check():
         'status': 'healthy',
         'services': {}
     }
-    
-    # Check database connection
+
     try:
         db.session.execute(db.text('SELECT 1'))
         health_status['services']['database'] = 'healthy'
     except Exception as e:
         health_status['services']['database'] = f'unhealthy: {str(e)}'
         health_status['status'] = 'unhealthy'
-    
-    # Check MQTT connection
+
     try:
         from app.services.mqtt_service import MQTTService
         mqtt = MQTTService.get_instance()
@@ -69,14 +67,12 @@ def health_check():
             health_status['services']['mqtt'] = 'healthy'
         else:
             health_status['services']['mqtt'] = 'disconnected'
-            # Don't mark as unhealthy since MQTT might reconnect
     except Exception as e:
         health_status['services']['mqtt'] = f'error: {str(e)}'
-    
-    # Add version info
+
     health_status['version'] = '1.0.0'
     health_status['environment'] = current_app.config.get('ENV', 'development')
-    
+
     status_code = 200 if health_status['status'] == 'healthy' else 503
     return jsonify(health_status), status_code
 
@@ -85,12 +81,11 @@ def health_check():
 def readiness_check():
     """
     Readiness check endpoint for Kubernetes/Docker.
-    
+
     Returns:
         200 if service is ready to accept traffic
     """
     try:
-        # Check database is ready
         db.session.execute(db.text('SELECT 1'))
         return jsonify({'status': 'ready'}), 200
     except Exception as e:
