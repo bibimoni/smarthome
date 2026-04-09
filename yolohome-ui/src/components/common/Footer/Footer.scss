@@ -1,32 +1,30 @@
 .footer-container {
   width: 100%;
-  margin-top: auto; // Đẩy footer xuống dưới cùng nếu dùng flex-direction: column
-  padding-bottom: 20px;
+  margin-top: auto;
+  padding: 26px 0 20px;
   font-family: 'Roboto', sans-serif;
 
-  // 1. Line băng ngang màu #808080, weight 1
   .footer-line {
-    width: 100%;
+    width: calc(100% - 64px);
     height: 1px;
-    background-color: #808080;
-    margin-bottom: 30px;
+    margin: 0 auto 30px;
+    background: linear-gradient(90deg, transparent, rgba(173, 34, 52, 0.4), transparent);
   }
 
-  // 2. Dòng chữ chính giữa: Roboto Bold 20
   .footer-main-title {
     text-align: center;
     font-size: 20px;
-    font-weight: 700; // Bold
-    color: var(--text-h);
+    font-weight: 700;
+    color: var(--accent-strong);
     margin-bottom: 40px;
     text-transform: uppercase;
     letter-spacing: 1px;
   }
 
-  // 3. Mock content chia 3 cột
   .footer-content {
     display: flex;
     justify-content: space-around;
+    gap: 28px;
     padding: 0 100px;
     margin-bottom: 30px;
     text-align: left;
@@ -35,7 +33,7 @@
       h3 {
         font-size: 16px;
         font-weight: 700;
-        color: var(--text-h);
+        color: var(--accent-strong);
         margin-bottom: 15px;
       }
 
@@ -59,13 +57,23 @@
     }
   }
 
-  // 4. Dòng bản quyền dưới cùng
   .footer-bottom {
     text-align: center;
     font-size: 12px;
-    color: #999;
-    border-top: 1px solid var(--border);
+    color: rgba(122, 15, 29, 0.6);
+    border-top: 1px solid rgba(173, 34, 52, 0.12);
     padding-top: 15px;
     margin: 0 50px;
+  }
+
+  @media (max-width: 900px) {
+    .footer-content {
+      flex-direction: column;
+      padding: 0 28px;
+    }
+
+    .footer-bottom {
+      margin: 0 24px;
+    }
   }
 }

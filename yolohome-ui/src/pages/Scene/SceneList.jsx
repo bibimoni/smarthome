@@ -1,168 +1,111 @@
-import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { mockScenes } from '../../data/uc5MockData'
-import { Play, Trash2, Plus, Clapperboard } from 'lucide-react'
+import { Plus, Workflow, PlayCircle, BellRing } from 'lucide-react'
+import { mockScenes } from '../../data/uc5MockData.jsx'
 import './SceneList.scss'
 
 function SceneList() {
-   const navigate = useNavigate()
-   const [scenes, setScenes] = useState([])
-   const [loading, setLoading] = useState(true)
-   const [runningId, setRunningId] = useState(null)
-   const [activeTab, setActiveTab] = useState('scenes')
+  const navigate = useNavigate()
 
-   useEffect(() => {
-      // Simulate API loading
-      setTimeout(() => {
-         setScenes(mockScenes)
-         setLoading(false)
-      }, 500)
-   }, [])
+  return (
+    <section className="uc5-page app-dark-shell">
+      <div className="app-dark-shell__ambient app-dark-shell__ambient--one" />
+      <div className="app-dark-shell__ambient app-dark-shell__ambient--two" />
 
-   const handleDelete = (id) => {
-      if (window.confirm('Bạn có chắc muốn xóa kịch bản này?')) {
-         setScenes((prev) => prev.filter((s) => s.id !== id))
-      }
-   }
-
-   const handleRun = (id) => {
-      setRunningId(id)
-      setTimeout(() => {
-         setRunningId(null)
-         alert('Kịch bản đã được chạy thành công!')
-      }, 1000)
-   }
-
-   const formatDate = (isoString) => {
-      if (!isoString) return '—'
-      const date = new Date(isoString)
-      return date.toLocaleString('vi-VN', {
-         day: '2-digit',
-         month: '2-digit',
-         year: 'numeric',
-         hour: '2-digit',
-         minute: '2-digit',
-      })
-   }
-
-   if (loading) {
-      return (
-         <div className="scene-page">
-            <div className="scene-loading">
-               <div className="spinner"></div>
-               <p>Đang tải danh sách kịch bản...</p>
-            </div>
-         </div>
-      )
-   }
-
-   return (
-      <div className="scene-page">
-         {/* Header với title + tabs */}
-         <div className="scene-top-bar">
-            <h1 className="scene-main-title">KỊCH BẢN / SCENE</h1>
-            <div className="scene-tabs">
-               <button
-                  className={`tab-btn ${activeTab === 'dashboard' ? 'active' : ''}`}
-                  onClick={() => navigate('/')}
-               >
-                  DASHBOARD
-               </button>
-               <button
-                  className={`tab-btn ${activeTab === 'scenes' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('scenes')}
-               >
-                  KỊCH BẢN
-               </button>
-               <button
-                  className={`tab-btn ${activeTab === 'devices' ? 'active' : ''}`}
-                  onClick={() => navigate('/')}
-               >
-                  THIẾT BỊ
-               </button>
-            </div>
-         </div>
-
-         {/* Content */}
-         {scenes.length === 0 ? (
-            /* Màn hình 2: Trạng thái trống */
-            <div className="scene-empty">
-               <div className="scene-empty__box">
-                  <p className="empty-text">CHƯA CÓ KỊCH BẢN</p>
-                  <button className="btn-create" onClick={() => navigate('/scenes/create')}>
-                     <Plus size={18} />
-                     TẠO KỊCH BẢN MỚI
-                  </button>
-               </div>
-            </div>
-         ) : (
-            /* Màn hình 1: Danh sách kịch bản */
-            <>
-               {/* Hero section */}
-               <div className="scene-hero">
-                  <div className="scene-hero__left">
-                     <h2 className="scene-hero__title">TẠO VÀ CHẠY KỊCH BẢN</h2>
-                     <p className="scene-hero__subtitle">
-                        Quản lý scene gồm nhiều hành động và điều kiện kích hoạt
-                     </p>
-                  </div>
-                  <button className="btn-create" onClick={() => navigate('/scenes/create')}>
-                     <Plus size={18} />
-                     TẠO KỊCH BẢN MỚI
-                  </button>
-               </div>
-
-               {/* Table */}
-               <div className="scene-table-wrapper">
-                  <h3 className="scene-table__title">DANH SÁCH SCENE</h3>
-                  <table className="scene-table">
-                     <thead>
-                        <tr>
-                           <th>Tên kịch bản</th>
-                           <th>Hành động</th>
-                           <th>Lần chạy gần nhất</th>
-                           <th className="th-actions">Thao tác</th>
-                        </tr>
-                     </thead>
-                     <tbody>
-                        {scenes.map((scene) => (
-                           <tr key={scene.id}>
-                              <td className="scene-name">
-                                 <strong>{scene.name}</strong>
-                              </td>
-                              <td>
-                                 <span className="action-count">{scene.actions.length}</span>
-                                 <span className="action-label">
-                                    {scene.actions.map((a) => a.actuator_name).join(', ')}
-                                 </span>
-                              </td>
-                              <td className="scene-date">
-                                 {formatDate(scene.last_triggered_at)}
-                              </td>
-                              <td className="scene-actions">
-                                 <button
-                                    className="btn-action btn-run"
-                                    onClick={() => handleRun(scene.id)}
-                                    disabled={runningId === scene.id}
-                                 >
-                                    {runningId === scene.id ? 'Đang chạy...' : 'Chạy'}
-                                 </button>
-                                 <button
-                                    className="btn-action btn-delete"
-                                    onClick={() => handleDelete(scene.id)}
-                                 >
-                                    Xóa
-                                 </button>
-                              </td>
-                           </tr>
-                        ))}
-                     </tbody>
-                  </table>
-               </div>
-            </>
-         )}
+      <div className="uc-page-head">
+        <div>
+          <span className="uc-page-head__eyebrow">UC 5 · Tạo kịch bản điều khiển thiết bị</span>
+          <h1>Tạo và quản lý kịch bản</h1>
+          <p>Giao diện tổng hợp danh sách scene hiện có: trạng thái kích hoạt: điều kiện cảm biến và các hành động sẽ chạy khi scene được kích hoạt.</p>
+        </div>
+        <div className="uc-page-head__metrics">
+          <div>
+            <span>Kịch bản hiện có</span>
+            <strong>{mockScenes.length}</strong>
+          </div>
+          <div>
+            <span>Đang active</span>
+            <strong>{mockScenes.filter((scene) => scene.is_active).length}</strong>
+          </div>
+        </div>
       </div>
-   )
+
+      <div className="uc5-layout">
+        <div className="uc5-main glass-panel">
+          <div className="panel-chip">Mô phỏng UC_5</div>
+
+          <div className="uc5-hero glass-panel glass-panel--inner">
+            <div>
+              <div className="section-tag">Scene / Kịch bản</div>
+              <h2>Danh sách kịch bản đã tạo</h2>
+              <p>Người dùng có thể xem toàn bộ scene: số điều kiện: số hành động và chuyển sang màn hình tạo mới.</p>
+            </div>
+            <div className="uc5-hero__actions">
+              <button type="button" className="ghost-pill is-dark" onClick={() => navigate('/scenes/create')}>
+                <Plus size={16} /> Tạo kịch bản mới
+              </button>
+            </div>
+          </div>
+
+          <div className="scene-table glass-panel glass-panel--inner">
+            <div className="section-head">
+              <div>
+                <span className="section-tag">Danh sách scene</span>
+                <h3>Kịch bản hiện có</h3>
+              </div>
+            </div>
+
+            <div className="scene-table__rows">
+              {mockScenes.map((scene) => (
+                <article key={scene.id} className="scene-row">
+                  <div>
+                    <span>Tên kịch bản</span>
+                    <strong>{scene.name}</strong>
+                  </div>
+                  <div>
+                    <span>Điều kiện</span>
+                    <strong>{scene.conditions.length} rule</strong>
+                  </div>
+                  <div>
+                    <span>Hành động</span>
+                    <strong>{scene.actions.length} action</strong>
+                  </div>
+                  <div>
+                    <span>Trạng thái</span>
+                    <strong className={scene.is_active ? 'is-active' : 'is-inactive'}>{scene.is_active ? 'ACTIVE' : 'INACTIVE'}</strong>
+                  </div>
+                  <div>
+                    <span>Kích hoạt gần nhất</span>
+                    <strong>{new Date(scene.last_triggered_at).toLocaleString('vi-VN')}</strong>
+                  </div>
+                  <button type="button" className="ghost-pill ghost-pill--small" onClick={() => navigate('/scenes/create')}>
+                    Xem / Sửa
+                  </button>
+                </article>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <aside className="uc5-side glass-panel">
+          <div className="panel-chip">Hỗ trợ UC 5</div>
+
+          <div className="side-card glass-panel glass-panel--inner">
+            <div className="section-head section-head--compact">
+              <div>
+                <span className="section-tag">Mô tả scene</span>
+                <h3>Thành phần chính</h3>
+              </div>
+            </div>
+            <div className="scene-side-stack">
+              <div className="support-stat"><span>Điều kiện</span><strong><Workflow size={18} /> Ngưỡng cảm biến</strong><p>Nhiệt độ: độ ẩm: ánh sáng hoặc PIR.</p></div>
+              <div className="support-stat"><span>Hành động</span><strong><PlayCircle size={18} /> Điều khiển đầu ra</strong><p>Bật hoặc tắt quạt: LED: LCD: RGB hoặc Servo.</p></div>
+              <div className="support-stat"><span>Thông báo</span><strong><BellRing size={18} /> Sau khi lưu</strong><p>Scene sẵn sàng cho module tự động hóa sử dụng.</p></div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+  )
 }
 
 export default SceneList

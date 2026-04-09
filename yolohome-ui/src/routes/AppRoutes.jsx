@@ -8,9 +8,9 @@ import Login from '@pages/Authentication/Login.jsx'
 import ForgetPassword from '@pages/Authentication/ForgetPassword.jsx'
 import Home from '@pages/Menu/Home.jsx'
 import Dashboard from '@pages/Menu/Dashboard.jsx'
+import ThresholdConfig from '@pages/Menu/ThresholdConfig.jsx'
 import DeviceControl from '@pages/Menu/DeviceControl.jsx'
-
-// Scene (UC-5) --------------------------------------------------------------------
+import ActivityHistory from '@pages/Menu/ActivityHistory.jsx'
 import SceneList from '@pages/Scene/SceneList.jsx'
 import SceneCreate from '@pages/Scene/SceneCreate.jsx'
 
@@ -25,7 +25,9 @@ export const router = createBrowserRouter([
       { path: 'login', element: <Login /> },
       { path: 'forget-password', element: <ForgetPassword /> },
       { path: 'dashboard', element: <Dashboard /> },
+      { path: 'thresholds', element: <ThresholdConfig /> },
       { path: 'device-control', element: <DeviceControl /> },
+      { path: 'activity-history', element: <ActivityHistory /> },
       { path: 'scenes', element: <SceneList /> },
       { path: 'scenes/create', element: <SceneCreate /> },
     ],

@@ -5,6 +5,15 @@ import { NavLink, useNavigate } from 'react-router-dom'
 function Header() {
   const navigate = useNavigate()
 
+  const navItems = [
+    { to: '/', label: 'Trang chủ', end: true },
+    { to: '/dashboard', label: 'UC1 · Dashboard' },
+    { to: '/thresholds', label: 'UC2 · Ngưỡng' },
+    { to: '/device-control', label: 'UC3 · Thiết bị' },
+    { to: '/activity-history', label: 'UC4 · Lịch sử' },
+    { to: '/scenes', label: 'UC5 · Kịch bản' },
+  ]
+
   return (
     <header className="header-container">
       <div className="header-shell">
@@ -17,18 +26,16 @@ function Header() {
         </button>
 
         <nav className="header-content-menu">
-          <NavLink to="/" end className={({ isActive }) => `nav-link ${isActive ? 'is-active' : ''}`}>
-            Trang chủ
-          </NavLink>
-          <NavLink to="/dashboard" className={({ isActive }) => `nav-link ${isActive ? 'is-active' : ''}`}>
-            Bảng điều khiển
-          </NavLink>
-          <NavLink to="/device-control" className={({ isActive }) => `nav-link ${isActive ? 'is-active' : ''}`}>
-            Danh sách thiết bị
-          </NavLink>
-          <NavLink to="/scenes" className={({ isActive }) => `nav-link ${isActive ? 'is-active' : ''}`}>
-            Tạo kịch bản
-          </NavLink>
+          {navItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.end}
+              className={({ isActive }) => `nav-link ${isActive ? 'is-active' : ''}`}
+            >
+              {item.label}
+            </NavLink>
+          ))}
         </nav>
 
         <div className="header-content-auth">
