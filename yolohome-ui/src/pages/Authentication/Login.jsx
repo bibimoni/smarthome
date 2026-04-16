@@ -1,10 +1,12 @@
 import { useState } from 'react'
+import { useAuth } from '@/context/authContext'
 import { Link, useNavigate } from 'react-router-dom'
 import { ShieldCheck, Smartphone, Activity, LogIn, Globe, AlertCircle } from 'lucide-react'
-import axiosClient from '../../api/axiosClient'
+import axiosClient from '@api/axiosClient'
 import './Login.scss'
 
 function Login() {
+  const { login } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -16,10 +18,12 @@ function Login() {
 
     try {
       const response = await axiosClient.post('/auth/login', { email, password })
-      localStorage.setItem('access_token', response.data.access_token)
+      const access_token = response.data.access_token;
+      login(access_token);
       navigate('/')
-    } catch {
-      setError('Sai email hoặc mật khẩu. Vui lòng kiểm tra lại thông tin đăng nhập.')
+      console.log(response)
+    } catch(e) {
+      setError('Sai email hoặc mật khẩu. Vui lòng kiểm tra lại thông tin đăng nhập.', e.message)
     }
   }
 

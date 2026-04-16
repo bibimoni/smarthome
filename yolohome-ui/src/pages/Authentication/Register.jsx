@@ -1,14 +1,13 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
+import { register } from '@services/authApi'
 import { Link, useNavigate } from 'react-router-dom'
 import { UserPlus, UserRound, Mail, BadgeCheck, Sparkles, AlertCircle } from 'lucide-react'
-import axiosClient from '../../api/axiosClient'
 import './Register.scss'
 
 function Register() {
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
-  const [displayName, setDisplayName] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
@@ -23,20 +22,21 @@ function Register() {
       return
     }
 
+    const payload = {
+      email,
+      password,
+      first_name: firstName,
+      last_name: lastName,
+    }
     try {
-      const response = await axiosClient.post('/auth/register', {
-        email,
-        password,
-        first_name: firstName,
-        last_name: lastName,
-        display_name: displayName,
-      })
-
-      if (response?.data?.access_token) {
-        localStorage.setItem('access_token', response.data.access_token)
+      const response = await register(payload)
+      if (response?.access_token) {
+        localStorage.setItem('access_token', response.access_token)
       }
       navigate('/login')
+      console.log("Successful")
     } catch {
+      console.log("Error", e)
       setError('Không thể tạo tài khoản ở thời điểm hiện tại. Vui lòng thử lại.')
     }
   }
@@ -96,10 +96,10 @@ function Register() {
                 <input id="register-email" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
               </div>
 
-              <div className="auth-field">
+              {/* <div className="auth-field">
                 <label htmlFor="register-username">Tên hiển thị</label>
                 <input id="register-username" type="text" placeholder="yolohome_user" value={displayName} onChange={(e) => setDisplayName(e.target.value)} required />
-              </div>
+              </div> */}
             </div>
 
             <div className="auth-form-grid">
@@ -135,15 +135,6 @@ function Register() {
                 <UserRound size={16} />
                 Quay về đăng nhập
               </Link>
-              <button type="button" className="auth-link-btn">
-                <Mail size={16} />
-                Đăng ký với Google
-              </button>
-            </div>
-
-            <div className="auth-footer-links">
-              <Link to="/login">Đã có tài khoản</Link>
-              <Link to="/forget-password">Khôi phục mật khẩu</Link>
             </div>
           </form>
         </div>

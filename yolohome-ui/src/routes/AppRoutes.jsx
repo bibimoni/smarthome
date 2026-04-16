@@ -1,5 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom'
 
+import ProtectedRoute from './ProtectedRoutes'
 import MainLayout from '@components/layout/MainLayout.jsx'
 import Unauthorized from '@pages/common/Unauthorized.jsx'
 
@@ -15,21 +16,31 @@ import SceneList from '@pages/Scene/SceneList.jsx'
 import SceneCreate from '@pages/Scene/SceneCreate.jsx'
 
 export const router = createBrowserRouter([
-  {
-    path: '/',
-    element: <MainLayout />,
-    children: [
-      { index: true, element: <Home /> },
-      { path: 'unauthorized', element: <Unauthorized /> },
-      { path: 'register', element: <Register /> },
-      { path: 'login', element: <Login /> },
-      { path: 'forget-password', element: <ForgetPassword /> },
-      { path: 'dashboard', element: <Dashboard /> },
-      { path: 'thresholds', element: <ThresholdConfig /> },
-      { path: 'device-control', element: <DeviceControl /> },
-      { path: 'activity-history', element: <ActivityHistory /> },
-      { path: 'scenes', element: <SceneList /> },
-      { path: 'scenes/create', element: <SceneCreate /> },
-    ],
-  },
+   {
+      path: '/',
+      element: <MainLayout />,
+      children: [
+         { index: true, element: <Home /> },
+         { path: 'unauthorized', element: <Unauthorized /> },
+         { path: 'register', element: <Register /> },
+         { path: 'login', element: <Login /> },
+         { path: 'forget-password', element: <ForgetPassword /> },
+         {
+            element: <ProtectedRoute />,
+            children: [
+               {
+                  // path: '/user',
+                  children: [
+                     { path: 'dashboard', element: <Dashboard /> },
+                     { path: 'thresholds', element: <ThresholdConfig /> },
+                     { path: 'device-control', element: <DeviceControl /> },
+                     { path: 'activity-history', element: <ActivityHistory /> },
+                     { path: 'scenes', element: <SceneList /> },
+                     { path: 'scenes/create', element: <SceneCreate /> },
+                  ],
+               },
+            ],
+         },
+      ],
+   },
 ])

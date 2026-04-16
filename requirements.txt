@@ -18,7 +18,7 @@ google-auth-oauthlib==1.2.0
 
 # MQTT and IoT
 paho-mqtt==1.6.1
-adafruit-io==2.8.0
+adafruit-io>=2.8.0
 
 # Email
 python-dotenv==1.0.0

@@ -13,6 +13,7 @@ export default defineConfig({
       '@routes': '/src/routes',
       '@assets': '/src/assets',
       '@mock': '/src/mock',
+      '@services': '/src/services'
     }
   }
 })
