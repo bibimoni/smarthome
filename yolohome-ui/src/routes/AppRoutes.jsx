@@ -37,6 +37,7 @@ export const router = createBrowserRouter([
                      { path: 'activity-history', element: <ActivityHistory /> },
                      { path: 'scenes', element: <SceneList /> },
                      { path: 'scenes/create', element: <SceneCreate /> },
+                     { path: 'scenes/:id/edit', element: <SceneCreate /> },
                   ],
                },
             ],
