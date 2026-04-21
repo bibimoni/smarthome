@@ -1,0 +1,11 @@
+.env
+.venv/
+env/
+venv/
+
+__pycache__/*
+app/*/__pycache__/*
+
+
+YoloHome___AIoT_v2.pdf
+DADN.pdf
