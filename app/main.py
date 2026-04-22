@@ -101,11 +101,13 @@ def _register_blueprints(app):
     from app.api.logs import logs_bp
     from app.api.iot import iot_bp
     from app.api.health import health_bp
+    from app.api.scenes import scenes_bp
 
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(sensors_bp, url_prefix='/api/sensors')
     app.register_blueprint(actuators_bp, url_prefix='/api/actuators')
     app.register_blueprint(thresholds_bp, url_prefix='/api/thresholds')
+    app.register_blueprint(scenes_bp, url_prefix='/api/scenes')
     app.register_blueprint(logs_bp, url_prefix='/api/logs')
     app.register_blueprint(iot_bp, url_prefix='/api/iot')
     app.register_blueprint(health_bp, url_prefix='/api')

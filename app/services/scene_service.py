@@ -1,170 +1,335 @@
-"""Sensor service for sensor data operations."""
-from typing import List, Optional, Tuple
-from datetime import datetime, timedelta
+"""Scene service for automation scenario management."""
+from typing import List, Optional, Tuple, Dict
+from datetime import datetime
 from app.extensions import db
-from app.models.device import Sensor
-from app.models.data import SensorData
-from app.services.device_service import DeviceService
+from app.models.automation import Scene, SceneCondition, SceneAction
+from app.models.device import Sensor, Actuator
+from app.models.data import EventLog
 
 
-class SensorService:
-    """Service class for sensor data operations."""
+class SceneService:
+    """Service class for scene management operations."""
     
     @staticmethod
-    def get_all_sensors() -> List[Sensor]:
-        """Get all active sensors."""
-        return DeviceService.get_all_sensors()
-    
-    @staticmethod
-    def get_sensor_by_id(sensor_id: int) -> Optional[Sensor]:
-        """Get sensor by ID."""
-        return Sensor.query.get(sensor_id)
-    
-    @staticmethod
-    def get_sensor_by_feed_key(feed_key: str) -> Optional[Sensor]:
-        """Get sensor by Adafruit feed key."""
-        return Sensor.query.filter_by(feed_key=feed_key).first()
-    
-    @staticmethod
-    def get_sensors_by_type(sensor_type: str) -> List[Sensor]:
-        """Get all sensors of a specific type."""
-        return Sensor.query.filter_by(type=sensor_type, is_active=True).all()
-    
-    @staticmethod
-    def record_sensor_data(sensor_id: int, value: float) -> Tuple[Optional[SensorData], str]:
+    def get_all_scenes(user_id: int = None) -> List[Scene]:
         """
-        Record sensor data.
+        Get all scenes.
         
         Args:
-            sensor_id: Sensor ID
-            value: Sensor value
+            user_id: Optional user ID to filter scenes
             
         Returns:
-            Tuple of (SensorData or None, error message)
+            List of Scene objects
         """
+        query = Scene.query.filter_by(is_active=True)
+        if user_id:
+            query = query.filter_by(user_id=user_id)
+        return query.all()
+    
+    @staticmethod
+    def get_scene_by_id(scene_id: int) -> Optional[Scene]:
+        """Get scene by ID."""
+        return Scene.query.get(scene_id)
+    
+    @staticmethod
+    def create_scene(user_id: int, name: str, description: str = None,
+                     conditions: List[Dict] = None, actions: List[Dict] = None) -> Tuple[Optional[Scene], str]:
+        """
+        Create a new scene with conditions and actions.
+        
+        Args:
+            user_id: User ID creating the scene
+            name: Scene name
+            description: Scene description
+            conditions: List of condition dicts with sensor_id, operator, threshold_value
+            actions: List of action dicts with actuator_id, action_value
+            
+        Returns:
+            Tuple of (Scene or None, error message)
+        """
+        # Validate scene name
+        if not name or len(name.strip()) == 0:
+            return None, "Scene name is required"
+        
+        # Create scene
+        scene = Scene(
+            user_id=user_id,
+            name=name.strip(),
+            description=description,
+            is_active=True
+        )
+        
+        db.session.add(scene)
+        db.session.flush()  # Get scene ID
+        
+        # Add conditions
+        if conditions:
+            for cond in conditions:
+                sensor = Sensor.query.get(cond.get('sensor_id'))
+                if not sensor:
+                    return None, f"Sensor {cond.get('sensor_id')} not found"
+                
+                if cond.get('operator') not in SceneCondition.VALID_OPERATORS:
+                    return None, f"Invalid operator: {cond.get('operator')}"
+                
+                condition = SceneCondition(
+                    scene_id=scene.id,
+                    sensor_id=cond['sensor_id'],
+                    operator=cond['operator'],
+                    threshold_value=cond['threshold_value']
+                )
+                db.session.add(condition)
+        
+        # Add actions
+        if actions:
+            for act in actions:
+                actuator = Actuator.query.get(act.get('actuator_id'))
+                if not actuator:
+                    return None, f"Actuator {act.get('actuator_id')} not found"
+                
+                action = SceneAction(
+                    scene_id=scene.id,
+                    actuator_id=act['actuator_id'],
+                    action_value=act['action_value']
+                )
+                db.session.add(action)
+        
+        db.session.commit()
+        
+        # Log scene creation
+        EventLog.log_event(
+            event_type=EventLog.TYPE_SCENE,
+            description=f"Scene '{name}' created",
+            user_id=user_id,
+            metadata={'scene_id': scene.id, 'action': 'create'}
+        )
+        
+        return scene, ""
+    
+    @staticmethod
+    def update_scene(scene_id: int, name: str = None, description: str = None,
+                     is_active: bool = None) -> Tuple[Optional[Scene], str]:
+        """Update scene properties."""
+        scene = Scene.query.get(scene_id)
+        if not scene:
+            return None, "Scene not found"
+        
+        if name is not None:
+            if not name or len(name.strip()) == 0:
+                return None, "Scene name cannot be empty"
+            scene.name = name.strip()
+        
+        if description is not None:
+            scene.description = description
+        
+        if is_active is not None:
+            scene.is_active = is_active
+        
+        scene.updated_at = datetime.utcnow()
+        db.session.commit()
+        
+        return scene, ""
+    
+    @staticmethod
+    def delete_scene(scene_id: int) -> Tuple[bool, str]:
+        """Delete a scene."""
+        scene = Scene.query.get(scene_id)
+        if not scene:
+            return False, "Scene not found"
+        
+        scene.is_active = False
+        db.session.commit()
+        
+        return True, ""
+    
+    @staticmethod
+    def add_condition(scene_id: int, sensor_id: int, operator: str, 
+                      threshold_value: float) -> Tuple[Optional[SceneCondition], str]:
+        """
+        Add a condition to a scene.
+        
+        Args:
+            scene_id: Scene ID
+            sensor_id: Sensor ID
+            operator: Comparison operator
+            threshold_value: Threshold value
+            
+        Returns:
+            Tuple of (SceneCondition or None, error message)
+        """
+        scene = Scene.query.get(scene_id)
+        if not scene:
+            return None, "Scene not found"
+        
         sensor = Sensor.query.get(sensor_id)
         if not sensor:
             return None, "Sensor not found"
         
-        # Validate value range if set
-        if sensor.min_value is not None and value < sensor.min_value:
-            return None, f"Value {value} is below minimum {sensor.min_value}"
-        if sensor.max_value is not None and value > sensor.max_value:
-            return None, f"Value {value} is above maximum {sensor.max_value}"
+        if operator not in SceneCondition.VALID_OPERATORS:
+            return None, f"Invalid operator. Must be one of: {SceneCondition.VALID_OPERATORS}"
         
-        sensor_data = SensorData(
+        condition = SceneCondition(
+            scene_id=scene_id,
             sensor_id=sensor_id,
-            value=value
+            operator=operator,
+            threshold_value=threshold_value
         )
         
-        db.session.add(sensor_data)
+        db.session.add(condition)
         db.session.commit()
         
-        return sensor_data, ""
+        return condition, ""
     
     @staticmethod
-    def get_latest_sensor_data(sensor_id: int) -> Optional[SensorData]:
-        """Get the latest data for a sensor."""
-        return SensorData.query.filter_by(sensor_id=sensor_id)\
-            .order_by(SensorData.recorded_at.desc()).first()
+    def remove_condition(condition_id: int) -> Tuple[bool, str]:
+        """Remove a condition from a scene."""
+        condition = SceneCondition.query.get(condition_id)
+        if not condition:
+            return False, "Condition not found"
+        
+        db.session.delete(condition)
+        db.session.commit()
+        
+        return True, ""
     
     @staticmethod
-    def get_sensor_data_history(sensor_id: int, hours: int = 24) -> List[SensorData]:
+    def add_action(scene_id: int, actuator_id: int, 
+                   action_value: str) -> Tuple[Optional[SceneAction], str]:
         """
-        Get sensor data history for the past N hours.
+        Add an action to a scene.
         
         Args:
-            sensor_id: Sensor ID
-            hours: Number of hours to look back
+            scene_id: Scene ID
+            actuator_id: Actuator ID
+            action_value: Action value (ON, OFF, etc.)
             
         Returns:
-            List of SensorData objects
+            Tuple of (SceneAction or None, error message)
         """
-        cutoff = datetime.utcnow() - timedelta(hours=hours)
-        return SensorData.query.filter(
-            SensorData.sensor_id == sensor_id,
-            SensorData.recorded_at >= cutoff
-        ).order_by(SensorData.recorded_at.desc()).all()
+        scene = Scene.query.get(scene_id)
+        if not scene:
+            return None, "Scene not found"
+        
+        actuator = Actuator.query.get(actuator_id)
+        if not actuator:
+            return None, "Actuator not found"
+        
+        action = SceneAction(
+            scene_id=scene_id,
+            actuator_id=actuator_id,
+            action_value=action_value
+        )
+        
+        db.session.add(action)
+        db.session.commit()
+        
+        return action, ""
     
     @staticmethod
-    def get_sensor_data_range(sensor_id: int, start_time: datetime, 
-                              end_time: datetime) -> List[SensorData]:
+    def remove_action(action_id: int) -> Tuple[bool, str]:
+        """Remove an action from a scene."""
+        action = SceneAction.query.get(action_id)
+        if not action:
+            return False, "Action not found"
+        
+        db.session.delete(action)
+        db.session.commit()
+        
+        return True, ""
+    
+    @staticmethod
+    def execute_scene(scene_id: int, user_id: int = None) -> Tuple[bool, str]:
         """
-        Get sensor data for a specific time range.
+        Manually execute a scene.
         
         Args:
-            sensor_id: Sensor ID
-            start_time: Start datetime
-            end_time: End datetime
+            scene_id: Scene ID
+            user_id: User ID executing the scene
             
         Returns:
-            List of SensorData objects
+            Tuple of (success, error message)
         """
-        return SensorData.query.filter(
-            SensorData.sensor_id == sensor_id,
-            SensorData.recorded_at >= start_time,
-            SensorData.recorded_at <= end_time
-        ).order_by(SensorData.recorded_at.desc()).all()
+        scene = Scene.query.get(scene_id)
+        if not scene:
+            return False, "Scene not found"
+        
+        if not scene.is_active:
+            return False, "Scene is not active"
+        
+        # Execute all actions
+        try:
+            executed_actions = scene.trigger()
+            
+            # Log scene execution
+            EventLog.log_event(
+                event_type=EventLog.TYPE_SCENE,
+                description=f"Scene '{scene.name}' executed manually",
+                user_id=user_id,
+                metadata={
+                    'scene_id': scene.id,
+                    'actions_count': len(executed_actions),
+                    'trigger': 'manual'
+                }
+            )
+            
+            return True, ""
+        except Exception as e:
+            return False, f"Error executing scene: {str(e)}"
     
     @staticmethod
-    def get_current_readings() -> dict:
-        """Get current readings for all sensors."""
-        sensors = DeviceService.get_all_sensors()
-        readings = {}
-
-        for sensor in sensors:
-            latest = sensor.get_latest_data()
-            readings[sensor.type] = {
-                'sensor_id': sensor.id,
-                'name': sensor.name,
-                'display_name_vi': sensor.to_dict().get('display_name_vi'),
-                'value': latest.value if latest else None,
-                'unit': sensor.unit,
-                'recorded_at': latest.recorded_at.isoformat() if latest else None
-            }
-
-        return readings
+    def check_and_execute_scenes():
+        """
+        Check all active scenes and execute if conditions are met.
+        This should be called periodically (e.g., when new sensor data arrives).
+        """
+        scenes = Scene.query.filter_by(is_active=True).all()
+        
+        for scene in scenes:
+            try:
+                if scene.evaluate_conditions():
+                    # Check if scene was recently triggered (avoid duplicate triggers)
+                    if scene.last_triggered_at:
+                        time_since = datetime.utcnow() - scene.last_triggered_at
+                        if time_since.total_seconds() < 60:  # 1 minute cooldown
+                            continue
+                    
+                    scene.trigger()
+                    
+                    EventLog.log_event(
+                        event_type=EventLog.TYPE_SCENE,
+                        description=f"Scene '{scene.name}' triggered automatically",
+                        user_id=scene.user_id,
+                        metadata={
+                            'scene_id': scene.id,
+                            'trigger': 'automatic'
+                        }
+                    )
+            except Exception as e:
+                print(f"Error checking scene {scene.id}: {e}")
     
     @staticmethod
-    def get_sensor_statistics(sensor_id: int, hours: int = 24) -> dict:
+    def get_scene_status(scene_id: int) -> Optional[dict]:
         """
-        Get statistics for a sensor over a time period.
+        Get status of a scene including condition evaluation.
         
         Args:
-            sensor_id: Sensor ID
-            hours: Number of hours to analyze
+            scene_id: Scene ID
             
         Returns:
-            Dict with min, max, avg, count
+            Status dict or None
         """
-        data = SensorService.get_sensor_data_history(sensor_id, hours)
+        scene = Scene.query.get(scene_id)
+        if not scene:
+            return None
         
-        if not data:
-            return {
-                'min': None,
-                'max': None,
-                'avg': None,
-                'count': 0
-            }
-        
-        values = [d.value for d in data]
+        conditions_met = scene.evaluate_conditions()
         
         return {
-            'min': min(values),
-            'max': max(values),
-            'avg': sum(values) / len(values),
-            'count': len(values)
+            'id': scene.id,
+            'name': scene.name,
+            'is_active': scene.is_active,
+            'conditions_met': conditions_met,
+            'last_triggered_at': scene.last_triggered_at.isoformat() if scene.last_triggered_at else None,
+            'conditions': [c.to_dict() for c in scene.conditions],
+            'actions': [a.to_dict() for a in scene.actions]
         }
-    
-    @staticmethod
-    def cleanup_old_data(days: int = 90) -> int:
-        """
-        Remove sensor data older than specified days.
-        
-        Args:
-            days: Number of days to keep
-            
-        Returns:
-            Number of records deleted
-        """
-        return SensorData.cleanup_old_data(days)

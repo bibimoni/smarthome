@@ -193,7 +193,7 @@ function ActivityHistory() {
 
       <div className="uc-page-head">
         <div>
-          <span className="uc-page-head__eyebrow">UC 4 · Lịch sử hoạt động và cảnh báo</span>
+          {/* <span className="uc-page-head__eyebrow">UC 4 · Lịch sử hoạt động và cảnh báo</span> */}
           <h1>Lịch sử hoạt động / Event log</h1>
           <p>Xem lịch sử hoạt động thiết bị, cảnh báo ngưỡng và các thao tác của người dùng.</p>
         </div>
@@ -206,7 +206,7 @@ function ActivityHistory() {
 
       <div className="uc4-layout">
         <div className="uc4-main glass-panel">
-          <div className="panel-chip">Dữ liệu thực từ API</div>
+          {/* <div className="panel-chip">Dữ liệu thực từ API</div> */}
 
           {/* Hero */}
           <div className="uc4-hero glass-panel glass-panel--inner">
@@ -355,7 +355,7 @@ function ActivityHistory() {
         </div>
 
         {/* Sidebar */}
-        <aside className="uc4-side glass-panel">
+        {/* <aside className="uc4-side glass-panel">
           <div className="panel-chip">Hỗ trợ UC 4</div>
 
           <div className="side-card glass-panel glass-panel--inner">
@@ -410,7 +410,7 @@ function ActivityHistory() {
               <div className="status-pill"><span>Trang hiện tại</span><strong>{pagination.page}</strong></div>
             </div>
           </div>
-        </aside>
+        </aside> */}
       </div>
 
       <DetailModal log={detailLog} onClose={() => setDetailLog(null)} />
