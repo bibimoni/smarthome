@@ -259,6 +259,8 @@ class SceneService:
         # Execute all actions
         try:
             executed_actions = scene.trigger()
+            if not executed_actions:
+                return False, "No actions executed"
             
             # Log scene execution
             EventLog.log_event(
@@ -293,7 +295,9 @@ class SceneService:
                         if time_since.total_seconds() < 60:  # 1 minute cooldown
                             continue
                     
-                    scene.trigger()
+                    executed_actions = scene.trigger()
+                    if not executed_actions:
+                        continue
                     
                     EventLog.log_event(
                         event_type=EventLog.TYPE_SCENE,

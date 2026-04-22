@@ -353,64 +353,6 @@ function ActivityHistory() {
             )}
           </div>
         </div>
-
-        {/* Sidebar */}
-        {/* <aside className="uc4-side glass-panel">
-          <div className="panel-chip">Hỗ trợ UC 4</div>
-
-          <div className="side-card glass-panel glass-panel--inner">
-            <div className="section-head section-head--compact">
-              <div><span className="section-tag">Bộ lọc và truy vấn</span><h3>Tác vụ chính</h3></div>
-            </div>
-            <div className="chip-stack">
-              {['Lọc theo thời gian','Lọc theo thiết bị','Lọc theo loại sự kiện','Xem chi tiết từng log'].map(c => (
-                <div key={c} className="event-tag">{c}</div>
-              ))}
-            </div>
-          </div>
-
-          <div className="side-card glass-panel glass-panel--inner">
-            <div className="section-head section-head--compact">
-              <div><span className="section-tag">7 ngày gần nhất</span><h3>Thống kê sự kiện</h3></div>
-            </div>
-            <div className="status-list">
-              {['ALERT','AUTO','MANUAL','ERROR','SCENE'].map(type => (
-                <div key={type} className="status-pill">
-                  <span><EventTypeBadge type={type} /></span>
-                  <strong>{summary?.by_type?.[type] ?? '—'}</strong>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {summary?.most_active_actuators?.length > 0 && (
-            <div className="side-card glass-panel glass-panel--inner">
-              <div className="section-head section-head--compact">
-                <div><span className="section-tag">Top thiết bị</span><h3>Hoạt động nhiều nhất</h3></div>
-              </div>
-              <div className="status-list">
-                {summary.most_active_actuators.slice(0,4).map(a => (
-                  <div key={a.actuator_id} className="status-pill">
-                    <span>{a.device_name || `Actuator #${a.actuator_id}`}</span>
-                    <strong>{a.count}</strong>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="side-card glass-panel glass-panel--inner">
-            <div className="section-head section-head--compact">
-              <div><span className="section-tag">Nguyên tắc hiển thị</span><h3>Thông tin hệ thống</h3></div>
-            </div>
-            <div className="status-list">
-              <div className="status-pill"><span>Thứ tự</span><strong>Mới → cũ</strong></div>
-              <div className="status-pill"><span>Chế độ</span><strong>Read only</strong></div>
-              <div className="status-pill"><span>Phân trang</span><strong>15 / trang</strong></div>
-              <div className="status-pill"><span>Trang hiện tại</span><strong>{pagination.page}</strong></div>
-            </div>
-          </div>
-        </aside> */}
       </div>
 
       <DetailModal log={detailLog} onClose={() => setDetailLog(null)} />

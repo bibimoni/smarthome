@@ -8,7 +8,7 @@ from app.services.device_service import DeviceService
 from app.services.sensor_service import SensorService
 from app.services.mqtt_service import mqtt_service
 from app.services.threshold_service import ThresholdService
-
+from app.services.scene_service import SceneService
 
 iot_bp = Blueprint('iot', __name__)
 
@@ -71,11 +71,9 @@ def update_sensor_data():
     # Evaluate threshold rules after receiving new data
     try:
         ThresholdService.evaluate_all_rules()
+        SceneService.check_and_execute_scenes()
     except Exception as e:
         print(f"Error evaluating rules: {e}")
-    
-    # Check scenes
-    scene_results = {'skipped': 'UC5 disabled'}
     
     return jsonify({
         'message': 'Data received',
@@ -120,7 +118,7 @@ def update_single_sensor(feed_key):
     if sensor:
         try:
             ThresholdService.evaluate_all_rules()
-            scene_results = {'skipped': 'UC5 disabled'}
+            SceneService.check_and_execute_scenes()
         except Exception as e:
             print(f"Error evaluating: {e}")
     

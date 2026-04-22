@@ -194,6 +194,7 @@ class MQTTService:
         from app.extensions import db
         from app.models.device import Sensor, Actuator
         from app.models.data import SensorData, EventLog
+        from app.services.scene_service import SceneService
         
         # Extract feed name from topic
         parts = topic.split('/')
@@ -226,6 +227,12 @@ class MQTTService:
         
         # Check threshold rules if sensor is in AUTO mode
         self._check_threshold_rules(sensor, value)
+
+        # Check scenes after sensor data is recorded
+        try:
+            SceneService.check_and_execute_scenes()
+        except Exception as e:
+            logger.warning(f"Error checking scenes after sensor update: {e}")
     
     def _check_threshold_rules(self, sensor, value: float):
         """Check and execute threshold rules for a sensor."""

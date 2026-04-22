@@ -128,11 +128,12 @@ class Scene(db.Model):
         """
         executed_actions = []
         for action in self.actions:
-            action.execute()
-            executed_actions.append(action)
-        
-        self.last_triggered_at = datetime.utcnow()
-        db.session.commit()
+            if action.execute():
+                executed_actions.append(action)
+
+        if executed_actions:
+            self.last_triggered_at = datetime.utcnow()
+            db.session.commit()
         
         return executed_actions
     
@@ -243,6 +244,12 @@ class SceneAction(db.Model):
         
         actuator = self.actuator
         if not actuator:
+            return False
+
+        if actuator.mode != actuator.MODE_AUTO:
+            return False
+
+        if actuator.current_value == self.action_value:
             return False
         
         # Update actuator state in database
