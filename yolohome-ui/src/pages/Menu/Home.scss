@@ -1,0 +1,108 @@
+.home-hub {
+  padding-bottom: 16px;
+}
+
+.home-module-grid {
+  max-width: 1720px;
+  margin: 18px auto 0;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.home-module-card {
+  grid-column: span 4;
+  padding: 26px 28px;
+  border-radius: 28px;
+  min-height: 136px;
+  display: flex;
+  align-items: center;
+}
+
+.home-module-card--bottom:nth-child(4) {
+  grid-column: 3 / span 4;
+}
+
+.home-module-card--bottom:nth-child(5) {
+  grid-column: 7 / span 4;
+}
+
+.home-module-card__header {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 20px;
+}
+
+.home-module-card__title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-width: 0;
+
+  h3 {
+    margin: 0;
+    color: #8f0f22;
+    font-size: 18px;
+    line-height: 1.5;
+    font-weight: 800;
+    white-space: normal;
+    word-break: break-word;
+  }
+}
+
+.home-module-card__icon {
+  width: 68px;
+  height: 68px;
+  border-radius: 22px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: #fffdfd;
+  background: linear-gradient(180deg, #dc4859, #b11427);
+  box-shadow: 0 18px 34px rgba(167, 24, 45, 0.22);
+}
+
+.home-module-card__action {
+  min-width: 132px;
+  height: 52px;
+  padding: 0 22px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+@media (max-width: 1480px) {
+  .home-module-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: 1180px;
+  }
+
+  .home-module-card,
+  .home-module-card--bottom:nth-child(4),
+  .home-module-card--bottom:nth-child(5) {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 900px) {
+  .home-module-grid {
+    grid-template-columns: 1fr;
+    max-width: 720px;
+  }
+
+  .home-module-card,
+  .home-module-card--bottom:nth-child(4),
+  .home-module-card--bottom:nth-child(5) {
+    grid-column: auto;
+  }
+
+  .home-module-card__header {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .home-module-card__action {
+    justify-self: end;
+  }
+}

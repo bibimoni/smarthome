@@ -34,8 +34,8 @@ services:
       - DATABASE_URL=postgresql://yolohome:yolohome_dev_password@db:5432/yolohome_dev
       - JWT_SECRET_KEY=dev-jwt-secret-key-change-in-production
       - JWT_ACCESS_TOKEN_EXPIRES=86400
-      - ADAFRUIT_IO_USERNAME=${ADAFRUIT_IO_USERNAME:-quanghung2405}
-      - ADAFRUIT_IO_KEY=${ADAFRUIT_IO_KEY:-aio_anJO06oMkhLtJbAYhp4yRGMmoFoe}
+      - ADAFRUIT_IO_USERNAME=${ADAFRUIT_IO_USERNAME:-huuh2006nhan}
+      - ADAFRUIT_IO_KEY=${ADAFRUIT_IO_KEY:-REPLACE_WITH_ADAFRUIT_IO_KEY}
       - SMTP_SERVER=${SMTP_SERVER:-}
       - SMTP_PORT=${SMTP_PORT:-587}
       - SMTP_USERNAME=${SMTP_USERNAME:-}

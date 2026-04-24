@@ -2,7 +2,18 @@
 from typing import List, Optional, Tuple
 from datetime import datetime
 from app.extensions import db
+<<<<<<< HEAD
 from app.models.device import Sensor, Actuator
+=======
+from app.models.device import (
+    Sensor,
+    Actuator,
+    normalize_actuator_description,
+    normalize_actuator_name,
+    normalize_sensor_description,
+    normalize_sensor_name,
+)
+>>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
 from app.models.data import SensorData, EventLog
 from app.services.mqtt_service import mqtt_service
 
@@ -13,37 +24,69 @@ class DeviceService:
     # Default sensor configurations for YoloBit
     DEFAULT_SENSORS = [
         {
+<<<<<<< HEAD
             'name': 'Temperature',
+=======
+            'name': 'Nhiệt độ',
+>>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
             'type': Sensor.TYPE_TEMPERATURE,
             'feed_key': 'temperature',
             'unit': '°C',
             'min_value': -40,
             'max_value': 80,
+<<<<<<< HEAD
             'description': 'DHT20 Temperature Sensor'
         },
         {
             'name': 'Humidity',
+=======
+            'description': 'Cảm biến nhiệt độ DHT20'
+        },
+        {
+            'name': 'Độ ẩm',
+>>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
             'type': Sensor.TYPE_HUMIDITY,
             'feed_key': 'humidity',
             'unit': '%',
             'min_value': 0,
             'max_value': 100,
+<<<<<<< HEAD
             'description': 'DHT20 Humidity Sensor'
         },
         {
             'name': 'Light',
+=======
+            'description': 'Cảm biến độ ẩm DHT20'
+        },
+        {
+            'name': 'Ánh sáng',
+>>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
             'type': Sensor.TYPE_LIGHT,
             'feed_key': 'light',
             'unit': 'lux',
             'min_value': 0,
             'max_value': 4095,
+<<<<<<< HEAD
             'description': 'Analog Light Sensor'
+=======
+            'description': 'Cảm biến ánh sáng'
+        },
+        {
+            'name': 'Chuyển động PIR',
+            'type': Sensor.TYPE_PIR,
+            'feed_key': 'pir',
+            'unit': '',
+            'min_value': 0,
+            'max_value': 1,
+            'description': 'Cảm biến chuyển động PIR'
+>>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
         }
     ]
     
     # Default actuator configurations for YoloBit
     DEFAULT_ACTUATORS = [
         {
+<<<<<<< HEAD
             'name': 'Fan',
             'type': Actuator.TYPE_FAN,
             'feed_key': 'fan',
@@ -54,6 +97,18 @@ class DeviceService:
             'type': Actuator.TYPE_LED,
             'feed_key': 'led',
             'description': 'On/Off LED'
+=======
+            'name': 'Quạt',
+            'type': Actuator.TYPE_FAN,
+            'feed_key': 'fan',
+            'description': 'Thiết bị quạt'
+        },
+        {
+            'name': 'Đèn LED',
+            'type': Actuator.TYPE_LED,
+            'feed_key': 'led',
+            'description': 'Thiết bị đèn LED'
+>>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
         }
     ]
     
@@ -73,15 +128,36 @@ class DeviceService:
             if not existing:
                 actuator = Actuator(**actuator_config)
                 db.session.add(actuator)
+<<<<<<< HEAD
         
+=======
+
+        db.session.flush()
+
+        # Chuẩn hóa tên và mô tả để frontend luôn hiển thị tiếng Việt thống nhất
+        for sensor in Sensor.query.all():
+            sensor.name = normalize_sensor_name(sensor.name, sensor.type, sensor.feed_key)
+            sensor.description = normalize_sensor_description(sensor.name, sensor.type, sensor.feed_key)
+
+        for actuator in Actuator.query.all():
+            actuator.name = normalize_actuator_name(actuator.name, actuator.type, actuator.feed_key)
+            actuator.description = normalize_actuator_description(actuator.name, actuator.type, actuator.feed_key)
+
+>>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
         db.session.commit()
     
     # ==================== Sensor Operations ====================
     
     @staticmethod
     def get_all_sensors() -> List[Sensor]:
+<<<<<<< HEAD
         """Get all sensors."""
         return Sensor.query.filter_by(is_active=True).all()
+=======
+        """Get all active sensors, dedupe theo loại cảm biến."""
+        sensors = Sensor.query.filter_by(is_active=True).all()
+        return DeviceService._dedupe_sensors(sensors)
+>>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
     
     @staticmethod
     def get_sensor_by_id(sensor_id: int) -> Optional[Sensor]:
@@ -168,12 +244,54 @@ class DeviceService:
         db.session.commit()
         return True, ""
     
+<<<<<<< HEAD
+=======
+
+    @staticmethod
+    def _sensor_canonical_key(sensor: Sensor) -> str:
+        """Chuẩn hóa khóa để gom sensor trùng logic."""
+        if sensor.type:
+            return sensor.type.strip().lower()
+
+        if sensor.feed_key:
+            return sensor.feed_key.split('.')[0].strip().lower()
+
+        return normalize_sensor_name(sensor.name, sensor.type, sensor.feed_key).strip().lower()
+
+    @staticmethod
+    def _dedupe_sensors(sensors: List[Sensor]) -> List[Sensor]:
+        """Chỉ giữ 1 sensor cho mỗi loại thiết bị. Ưu tiên bản ghi mới nhất."""
+        unique = {}
+        ordered = sorted(
+            sensors,
+            key=lambda s: (
+                s.updated_at or datetime.min,
+                s.created_at or datetime.min,
+                s.id or 0,
+            ),
+            reverse=True,
+        )
+
+        for sensor in ordered:
+            key = DeviceService._sensor_canonical_key(sensor)
+            if key not in unique:
+                unique[key] = sensor
+
+        return list(unique.values())
+
+>>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
     # ==================== Actuator Operations ====================
     
     @staticmethod
     def get_all_actuators() -> List[Actuator]:
+<<<<<<< HEAD
         """Get all actuators."""
         return Actuator.query.filter_by(is_active=True).all()
+=======
+        """Get all active actuators, dedupe theo loại thiết bị."""
+        actuators = Actuator.query.filter_by(is_active=True).all()
+        return DeviceService._dedupe_actuators(actuators)
+>>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
     
     @staticmethod
     def get_actuator_by_id(actuator_id: int) -> Optional[Actuator]:
@@ -316,6 +434,7 @@ class DeviceService:
     def record_sensor_data(feed_key: str, value: float) -> Tuple[bool, str]:
         """
         Record sensor data from a feed.
+<<<<<<< HEAD
         
         Args:
             feed_key: Adafruit feed key
@@ -328,14 +447,43 @@ class DeviceService:
         if not sensor:
             return False, "Sensor not found"
         
+=======
+        """
+        normalized_key = str(feed_key or '').split('.')[0].strip().lower()
+
+        sensors = Sensor.query.filter_by(is_active=True).all()
+        sensor = None
+
+        for item in sensors:
+            item_key = str(item.feed_key or '').split('.')[0].strip().lower()
+            item_type = str(item.type or '').strip().lower()
+
+            if item_key == normalized_key or item_type == normalized_key:
+                sensor = item
+                break
+
+        if not sensor:
+            return False, "Sensor not found"
+
+>>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
         sensor_data = SensorData(
             sensor_id=sensor.id,
             value=value
         )
+<<<<<<< HEAD
         
         db.session.add(sensor_data)
         db.session.commit()
         
+=======
+
+        sensor.updated_at = datetime.utcnow()
+
+        db.session.add(sensor_data)
+        db.session.add(sensor)
+        db.session.commit()
+
+>>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
         return True, ""
     
     @staticmethod
@@ -346,12 +494,56 @@ class DeviceService:
         Returns:
             Dict with sensor and actuator status
         """
+<<<<<<< HEAD
         sensors = Sensor.query.filter_by(is_active=True).all()
         actuators = Actuator.query.filter_by(is_active=True).all()
+=======
+        sensors = DeviceService.get_all_sensors()
+        actuators = DeviceService.get_all_actuators()
+>>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
         
         return {
             'sensors': [s.to_dict() for s in sensors],
             'actuators': [a.to_dict() for a in actuators],
             'total_sensors': len(sensors),
             'total_actuators': len(actuators)
+<<<<<<< HEAD
         }
+=======
+        }
+    @staticmethod
+    def _actuator_canonical_key(actuator: Actuator) -> str:
+        """Chuẩn hóa khóa để gom các actuator trùng logic."""
+        if actuator.type:
+            return actuator.type.strip().lower()
+
+        if actuator.feed_key:
+            return actuator.feed_key.split('.')[0].strip().lower()
+
+        return normalize_actuator_name(actuator.name, actuator.type, actuator.feed_key).strip().lower()
+
+
+    @staticmethod
+    def _dedupe_actuators(actuators: List[Actuator]) -> List[Actuator]:
+        """
+        Chỉ giữ 1 actuator cho mỗi loại thiết bị.
+        Ưu tiên bản ghi mới nhất.
+        """
+        unique = {}
+        ordered = sorted(
+            actuators,
+            key=lambda a: (
+                a.updated_at or datetime.min,
+                a.created_at or datetime.min,
+                a.id or 0,
+            ),
+            reverse=True,
+        )
+
+        for actuator in ordered:
+            key = DeviceService._actuator_canonical_key(actuator)
+            if key not in unique:
+                unique[key] = actuator
+
+        return list(unique.values())
+>>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f

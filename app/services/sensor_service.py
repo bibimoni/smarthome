@@ -83,7 +83,11 @@ class SensorService:
         return SensorData.query.filter(
             SensorData.sensor_id == sensor_id,
             SensorData.recorded_at >= cutoff
+<<<<<<< HEAD
         ).order_by(SensorData.recorded_at.asc()).all()
+=======
+        ).order_by(SensorData.recorded_at.desc()).all()
+>>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
     
     @staticmethod
     def get_sensor_data_range(sensor_id: int, start_time: datetime, 
@@ -103,12 +107,17 @@ class SensorService:
             SensorData.sensor_id == sensor_id,
             SensorData.recorded_at >= start_time,
             SensorData.recorded_at <= end_time
+<<<<<<< HEAD
         ).order_by(SensorData.recorded_at.asc()).all()
+=======
+        ).order_by(SensorData.recorded_at.desc()).all()
+>>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
     
     @staticmethod
     def get_current_readings() -> dict:
         """
         Get current readings for all sensors.
+<<<<<<< HEAD
         
         Returns:
             Dict mapping sensor types to current values
@@ -116,16 +125,32 @@ class SensorService:
         sensors = Sensor.query.filter_by(is_active=True).all()
         readings = {}
         
+=======
+        """
+        from app.services.device_service import DeviceService
+
+        sensors = DeviceService.get_all_sensors()
+        readings = {}
+
+>>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
         for sensor in sensors:
             latest = sensor.get_latest_data()
             readings[sensor.type] = {
                 'sensor_id': sensor.id,
                 'name': sensor.name,
+<<<<<<< HEAD
+=======
+                'display_name_vi': sensor.to_dict().get('display_name_vi'),
+>>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
                 'value': latest.value if latest else None,
                 'unit': sensor.unit,
                 'recorded_at': latest.recorded_at.isoformat() if latest else None
             }
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
         return readings
     
     @staticmethod
