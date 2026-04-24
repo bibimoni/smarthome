@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # YoloHome - IoT Smart Home Backend
 
 A production-ready backend for the YoloHome IoT Smart Home system, built with Flask and designed for university class projects.
@@ -764,3 +765,6 @@ For production scaling, consider:
 - Enable HTTPS
 
 **YoloHome** - Smart Home Automation System 🏠✨
+=======
+# smarthome
+>>>>>>> upstream/main
