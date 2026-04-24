@@ -1,6 +1,11 @@
 """Automation models: ThresholdRule, Scene, SceneCondition, SceneAction."""
 from datetime import datetime
+<<<<<<< HEAD
 from app.extensions import db
+=======
+from ..extensions import db
+from .device import normalize_actuator_name, normalize_sensor_name
+>>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
 
 
 class ThresholdRule(db.Model):
@@ -57,6 +62,7 @@ class ThresholdRule(db.Model):
         """Get a human-readable condition string."""
         sensor = self.sensor
         unit = sensor.unit if sensor else ''
+<<<<<<< HEAD
         return f"{sensor.name if sensor else 'Sensor'} {self.operator} {self.threshold_value}{unit}"
     
     def to_dict(self) -> dict:
@@ -69,6 +75,23 @@ class ThresholdRule(db.Model):
             'threshold_value': self.threshold_value,
             'actuator_id': self.actuator_id,
             'actuator_name': self.actuator.name if self.actuator else None,
+=======
+        sensor_name = normalize_sensor_name(sensor.name if sensor else None, sensor.type if sensor else None, sensor.feed_key if sensor else None)
+        return f"{sensor_name} {self.operator} {self.threshold_value}{unit}"
+    
+    def to_dict(self) -> dict:
+        """Convert threshold rule to dictionary."""
+        sensor_name = normalize_sensor_name(self.sensor.name if self.sensor else None, self.sensor.type if self.sensor else None, self.sensor.feed_key if self.sensor else None) if self.sensor else None
+        actuator_name = normalize_actuator_name(self.actuator.name if self.actuator else None, self.actuator.type if self.actuator else None, self.actuator.feed_key if self.actuator else None) if self.actuator else None
+        return {
+            'id': self.id,
+            'sensor_id': self.sensor_id,
+            'sensor_name': sensor_name,
+            'operator': self.operator,
+            'threshold_value': self.threshold_value,
+            'actuator_id': self.actuator_id,
+            'actuator_name': actuator_name,
+>>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
             'action_value': self.action_value,
             'is_active': self.is_active,
             'description': self.description,
@@ -124,11 +147,20 @@ class Scene(db.Model):
         """
         executed_actions = []
         for action in self.actions:
+<<<<<<< HEAD
             action.execute()
             executed_actions.append(action)
         
         self.last_triggered_at = datetime.utcnow()
         db.session.commit()
+=======
+            if action.execute():
+                executed_actions.append(action)
+
+        if executed_actions:
+            self.last_triggered_at = datetime.utcnow()
+            db.session.commit()
+>>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
         
         return executed_actions
     
@@ -178,8 +210,11 @@ class SceneCondition(db.Model):
         Returns:
             True if the condition is met
         """
+<<<<<<< HEAD
         from app.models.device import SensorData
         
+=======
+>>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
         sensor = self.sensor
         if not sensor:
             return False
@@ -206,7 +241,12 @@ class SceneCondition(db.Model):
         """Get a human-readable condition string."""
         sensor = self.sensor
         unit = sensor.unit if sensor else ''
+<<<<<<< HEAD
         return f"{sensor.name if sensor else 'Sensor'} {self.operator} {self.threshold_value}{unit}"
+=======
+        sensor_name = normalize_sensor_name(sensor.name if sensor else None, sensor.type if sensor else None, sensor.feed_key if sensor else None)
+        return f"{sensor_name} {self.operator} {self.threshold_value}{unit}"
+>>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
     
     def to_dict(self) -> dict:
         """Convert scene condition to dictionary."""
@@ -236,11 +276,24 @@ class SceneAction(db.Model):
     
     def execute(self):
         """Execute this action on the associated actuator."""
+<<<<<<< HEAD
         from app.services.mqtt_service import MQTTService
+=======
+        from ..services.mqtt_service import MQTTService
+>>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
         
         actuator = self.actuator
         if not actuator:
             return False
+<<<<<<< HEAD
+=======
+
+        if actuator.mode != actuator.MODE_AUTO:
+            return False
+
+        if actuator.current_value == self.action_value:
+            return False
+>>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
         
         # Update actuator state in database
         actuator.current_value = self.action_value
@@ -254,7 +307,11 @@ class SceneAction(db.Model):
         db.session.commit()
         
         # Log the event
+<<<<<<< HEAD
         from app.models.data import EventLog
+=======
+        from .data import EventLog
+>>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
         EventLog.log_event(
             event_type=EventLog.TYPE_SCENE,
             description=f"Scene '{self.scene.name}': {actuator.name} set to {self.action_value}",
@@ -273,14 +330,30 @@ class SceneAction(db.Model):
     
     def to_dict(self) -> dict:
         """Convert scene action to dictionary."""
+<<<<<<< HEAD
+=======
+        actuator_name = normalize_actuator_name(
+            self.actuator.name if self.actuator else None,
+            self.actuator.type if self.actuator else None,
+            self.actuator.feed_key if self.actuator else None,
+        ) if self.actuator else None
+>>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
         return {
             'id': self.id,
             'scene_id': self.scene_id,
             'actuator_id': self.actuator_id,
+<<<<<<< HEAD
             'actuator_name': self.actuator.name if self.actuator else None,
+=======
+            'actuator_name': actuator_name,
+>>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
             'action_value': self.action_value,
             'action_string': self.get_action_string(),
         }
     
     def __repr__(self):
+<<<<<<< HEAD
         return f'<SceneAction actuator={self.actuator_id} → {self.action_value}>'
+=======
+        return f'<SceneAction actuator={self.actuator_id} → {self.action_value}>'
+>>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f

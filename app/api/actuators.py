@@ -156,6 +156,7 @@ def get_status(actuator_id):
 @actuators_bp.route('/<int:actuator_id>/control', methods=['POST'])
 @jwt_required()
 def control_actuator(actuator_id):
+<<<<<<< HEAD
     """
     Control an actuator.
     
@@ -233,12 +234,45 @@ def control_actuator(actuator_id):
         'message': f'Actuator set to {action}',
         'actuator_id': actuator_id,
         'action': action
+=======
+    user_id = get_jwt_identity()
+    data = request.get_json()
+
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+
+    action = str(data.get('action', '')).upper().strip()
+    manual_override = bool(data.get('manual_override', True))
+    auto_switch_to_manual = bool(data.get('auto_switch_to_manual', False))
+
+    if not action:
+        return jsonify({'error': 'Action is required'}), 400
+
+    success, error, result = ActuatorService.control_actuator(
+        actuator_id=actuator_id,
+        action=action,
+        user_id=user_id,
+        manual_override=manual_override,
+        auto_switch_to_manual=auto_switch_to_manual,
+    )
+
+    if error:
+        status_code = 404 if 'not found' in error.lower() else 400
+        return jsonify({'error': error}), status_code
+
+    return jsonify({
+        'message': f'Actuator set to {action}',
+        'actuator_id': actuator_id,
+        'action': action,
+        'result': result,
+>>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
     }), 200
 
 
 @actuators_bp.route('/<int:actuator_id>/toggle', methods=['POST'])
 @jwt_required()
 def toggle_actuator(actuator_id):
+<<<<<<< HEAD
     """
     Toggle actuator on/off.
     
@@ -427,6 +461,68 @@ def set_value(actuator_id):
         'message': f'Value set to {value}',
         'actuator_id': actuator_id,
         'value': str(value)
+=======
+    user_id = get_jwt_identity()
+    success, error, result = ActuatorService.toggle_actuator(actuator_id, user_id)
+
+    if error:
+        return jsonify({'error': error}), 404 if 'not found' in error.lower() else 400
+
+    return jsonify({
+        'message': 'Actuator toggled',
+        'actuator_id': actuator_id,
+        'result': result,
+    }), 200
+
+@actuators_bp.route('/<int:actuator_id>/mode', methods=['POST'])
+@jwt_required()
+def set_mode(actuator_id):
+    user_id = get_jwt_identity()
+    data = request.get_json()
+
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+
+    mode = str(data.get('mode', '')).upper().strip()
+    if not mode:
+        return jsonify({'error': 'Mode is required'}), 400
+
+    success, error, result = ActuatorService.set_actuator_mode(actuator_id, mode, user_id)
+
+    if error:
+        return jsonify({'error': error}), 404 if 'not found' in error.lower() else 400
+
+    return jsonify({
+        'message': f'Mode set to {mode}',
+        'actuator_id': actuator_id,
+        'mode': mode,
+        'result': result,
+    }), 200
+
+@actuators_bp.route('/<int:actuator_id>/value', methods=['POST'])
+@jwt_required()
+def set_value(actuator_id):
+    user_id = get_jwt_identity()
+    data = request.get_json()
+
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+
+    value = data.get('value')
+    if value is None:
+        return jsonify({'error': 'Value is required'}), 400
+
+    success, error, result = ActuatorService.set_actuator_value(actuator_id, str(value), user_id)
+
+    if error:
+        return jsonify({'error': error}), 404 if 'not found' in error.lower() else 400
+
+    return jsonify({
+        'message': f'Actuator value set to {value}',
+        'actuator_id': actuator_id,
+        'value': value,
+        'result': result,
+>>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
     }), 200
 
 

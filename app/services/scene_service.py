@@ -259,6 +259,11 @@ class SceneService:
         # Execute all actions
         try:
             executed_actions = scene.trigger()
+<<<<<<< HEAD
+=======
+            if not executed_actions:
+                return False, "No actions executed"
+>>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
             
             # Log scene execution
             EventLog.log_event(
@@ -293,7 +298,13 @@ class SceneService:
                         if time_since.total_seconds() < 60:  # 1 minute cooldown
                             continue
                     
+<<<<<<< HEAD
                     scene.trigger()
+=======
+                    executed_actions = scene.trigger()
+                    if not executed_actions:
+                        continue
+>>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
                     
                     EventLog.log_event(
                         event_type=EventLog.TYPE_SCENE,

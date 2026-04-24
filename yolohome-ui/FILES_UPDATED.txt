@@ -1,0 +1,25 @@
+Files added or modified for the completed yolohome-ui package:
+
+Added:
+- .env.example
+- src/context/useAuth.js
+- src/services/actuatorApi.js
+- src/services/sensorApi.js
+- src/services/thresholdApi.js
+
+Modified:
+- src/services/apiClient.js
+- src/services/auth.service.js
+- src/services/authApi.js
+- src/components/common/Header/Header.jsx
+- src/context/authContext.jsx
+- src/pages/Authentication/Login.jsx
+- src/pages/Authentication/Register.jsx
+- src/pages/Authentication/ForgetPassword.jsx
+- src/pages/Menu/Dashboard.jsx
+- src/pages/Menu/ThresholdConfig.jsx
+- src/pages/Menu/DeviceControl.jsx
+- src/pages/Menu/ActivityHistory.jsx
+- src/pages/Scene/SceneCreate.jsx
+- src/components/Scene/AddActionModal.jsx
+- src/components/Scene/AddThresholdModal.jsx
