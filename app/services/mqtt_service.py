@@ -76,14 +76,6 @@ class MQTTService:
         """Connect to Adafruit IO MQTT broker."""
         if self.client:
             return
-<<<<<<< HEAD
-        
-        self.client = mqtt.Client()
-        
-        # Set credentials
-        self.client.username_pw_set(self.username, self.api_key)
-        
-=======
 
         broker = self.flask_app.config.get('MQTT_BROKER', 'io.adafruit.com')
         port = int(self.flask_app.config.get('MQTT_PORT', 1883))
@@ -98,32 +90,19 @@ class MQTTService:
         if use_tls:
             self.client.tls_set()
 
->>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
         # Set callbacks
         self.client.on_connect = self._on_connect
         self.client.on_disconnect = self._on_disconnect
         self.client.on_message = self._on_message
-<<<<<<< HEAD
-        
-        # Connect to Adafruit IO
-        try:
-            logger.info(f"Connecting to Adafruit IO as {self.username}...")
-            self.client.connect("io.adafruit.com", 1883, 60)
-            # Start the loop in a background thread
-=======
 
         try:
             logger.info(f"Connecting to MQTT broker {broker}:{port} as {self.username}...")
             self.client.connect(broker, port, keepalive)
->>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
             self.client.loop_start()
             self._initialized = True
             logger.info("MQTT loop started in background thread")
         except Exception as e:
-<<<<<<< HEAD
-=======
             self.connected = False
->>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
             logger.error(f"MQTT connection error: {e}")
     
     def disconnect(self):
@@ -215,10 +194,7 @@ class MQTTService:
         from app.extensions import db
         from app.models.device import Sensor, Actuator
         from app.models.data import SensorData, EventLog
-<<<<<<< HEAD
-=======
         from app.services.scene_service import SceneService
->>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
         
         # Extract feed name from topic
         parts = topic.split('/')
@@ -251,15 +227,12 @@ class MQTTService:
         
         # Check threshold rules if sensor is in AUTO mode
         self._check_threshold_rules(sensor, value)
-<<<<<<< HEAD
-=======
 
         # Check scenes after sensor data is recorded
         try:
             SceneService.check_and_execute_scenes()
         except Exception as e:
             logger.warning(f"Error checking scenes after sensor update: {e}")
->>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
     
     def _check_threshold_rules(self, sensor, value: float):
         """Check and execute threshold rules for a sensor."""
@@ -276,11 +249,7 @@ class MQTTService:
             actuator = rule.actuator
             
             # Skip if actuator is in MANUAL mode
-<<<<<<< HEAD
-            if actuator.mode == Actuator.MODE_MANUAL:
-=======
             if actuator and actuator.mode == 'MANUAL':
->>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
                 continue
             
             # Evaluate rule
@@ -348,31 +317,6 @@ class MQTTService:
         """
         Queue a command for devices to fetch via HTTP polling.
         Also publishes to MQTT for direct MQTT devices.
-<<<<<<< HEAD
-        
-        Args:
-            feed_key: Feed key (e.g., "fan", "led")
-            value: Command value (e.g., "ON", "OFF", "1", "0")
-        """
-        # Map feed_key to command name for YoloBit polling
-        command_map = {
-            'fan': 'FAN',
-            'led': 'LED'
-        }
-        cmd_name = command_map.get(feed_key, feed_key.upper())
-        command = f"{cmd_name}_{value}"
-        
-        self._command_queue.append({
-            'command': command,
-            'value': value,
-            'feed_key': feed_key,
-            'timestamp': time.time()
-        })
-        logger.info(f"Queued command: {command} (feed: {feed_key})")
-        
-        # Also publish to MQTT for direct MQTT devices
-        self.publish_actuator_command(feed_key, value)
-=======
         """
         if not feed_key:
             logger.warning("queue_command called without feed_key")
@@ -402,7 +346,6 @@ class MQTTService:
 
         mqtt_ok = self.publish_actuator_command(feed_key, value)
         return True if self._command_queue else mqtt_ok
->>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
     
     def get_commands(self) -> list:
         """
@@ -454,8 +397,4 @@ def init_mqtt(app):
     """Initialize MQTT service from Flask app."""
     global mqtt_service
     mqtt_service = MQTTService.init_app(app)
-<<<<<<< HEAD
     return mqtt_service
-=======
-    return mqtt_service
->>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f

@@ -14,7 +14,7 @@ scenes_bp = Blueprint('scenes', __name__)
 def get_scenes():
     """
     Get all scenes for the current user.
-    
+
     UC-5: Scene management
     ---
     tags:
@@ -37,7 +37,7 @@ def get_scenes():
     """
     user_id = get_jwt_identity()
     scenes = SceneService.get_all_scenes(user_id)
-    
+
     return jsonify({
         'scenes': [s.to_dict() for s in scenes],
         'count': len(scenes)
@@ -49,7 +49,7 @@ def get_scenes():
 def get_scene(scene_id):
     """
     Get a specific scene.
-    
+
     ---
     tags:
       - Scenes
@@ -75,10 +75,10 @@ def get_scene(scene_id):
           $ref: "#/definitions/Error"
     """
     scene = SceneService.get_scene_by_id(scene_id)
-    
+
     if not scene:
         return jsonify({'error': 'Scene not found'}), 404
-    
+
     return jsonify({'scene': scene.to_dict()}), 200
 
 
@@ -87,7 +87,7 @@ def get_scene(scene_id):
 def get_scene_status(scene_id):
     """
     Get status of a scene including condition evaluation.
-    
+
     ---
     tags:
       - Scenes
@@ -113,10 +113,10 @@ def get_scene_status(scene_id):
           $ref: "#/definitions/Error"
     """
     status = SceneService.get_scene_status(scene_id)
-    
+
     if not status:
         return jsonify({'error': 'Scene not found'}), 404
-    
+
     return jsonify({'status': status}), 200
 
 
@@ -125,7 +125,7 @@ def get_scene_status(scene_id):
 def create_scene():
     """
     Create a new scene.
-    
+
     UC-5: Create and run device control scenarios
     ---
     tags:
@@ -173,10 +173,10 @@ def create_scene():
     """
     user_id = get_jwt_identity()
     data = request.get_json()
-    
+
     if not data:
         return jsonify({'error': 'No data provided'}), 400
-    
+
     scene, error = SceneService.create_scene(
         user_id=user_id,
         name=data.get('name'),
@@ -184,10 +184,10 @@ def create_scene():
         conditions=data.get('conditions'),
         actions=data.get('actions')
     )
-    
+
     if error:
         return jsonify({'error': error}), 400
-    
+
     return jsonify({
         'message': 'Scene created',
         'scene': scene.to_dict()
@@ -199,7 +199,7 @@ def create_scene():
 def update_scene(scene_id):
     """
     Update a scene.
-    
+
     UC-5: Scene management
     ---
     tags:
@@ -244,20 +244,20 @@ def update_scene(scene_id):
           $ref: "#/definitions/Error"
     """
     data = request.get_json()
-    
+
     if not data:
         return jsonify({'error': 'No data provided'}), 400
-    
+
     scene, error = SceneService.update_scene(
         scene_id=scene_id,
         name=data.get('name'),
         description=data.get('description'),
         is_active=data.get('is_active')
     )
-    
+
     if error:
         return jsonify({'error': error}), 404 if 'not found' in error else 400
-    
+
     return jsonify({
         'message': 'Scene updated',
         'scene': scene.to_dict()
@@ -269,7 +269,7 @@ def update_scene(scene_id):
 def delete_scene(scene_id):
     """
     Delete a scene.
-    
+
     UC-5: Scene management
     ---
     tags:
@@ -296,10 +296,10 @@ def delete_scene(scene_id):
           $ref: "#/definitions/Error"
     """
     success, error = SceneService.delete_scene(scene_id)
-    
+
     if error:
         return jsonify({'error': error}), 404
-    
+
     return jsonify({'message': 'Scene deleted'}), 200
 
 
@@ -308,7 +308,7 @@ def delete_scene(scene_id):
 def execute_scene(scene_id):
     """
     Manually execute a scene.
-    
+
     UC-5: Run scene
     ---
     tags:
@@ -341,12 +341,12 @@ def execute_scene(scene_id):
           $ref: "#/definitions/Error"
     """
     user_id = get_jwt_identity()
-    
+
     success, error = SceneService.execute_scene(scene_id, user_id)
-    
+
     if error:
         return jsonify({'error': error}), 404 if 'not found' in error else 400
-    
+
     return jsonify({
         'message': 'Scene executed successfully',
         'scene_id': scene_id
@@ -358,34 +358,34 @@ def execute_scene(scene_id):
 def add_condition(scene_id):
     """
     Add a condition to a scene.
-    
+
     UC-5: Scene condition management
-    
+
     Request Body:
         sensor_id: Sensor ID
         operator: Comparison operator (>, <, ==, >=, <=)
         threshold_value: Threshold value
-        
+
     Returns:
         201: Condition added
         400: Validation error
         404: Scene or sensor not found
     """
     data = request.get_json()
-    
+
     if not data:
         return jsonify({'error': 'No data provided'}), 400
-    
+
     condition, error = SceneService.add_condition(
         scene_id=scene_id,
         sensor_id=data.get('sensor_id'),
         operator=data.get('operator'),
         threshold_value=data.get('threshold_value')
     )
-    
+
     if error:
         return jsonify({'error': error}), 404 if 'not found' in error else 400
-    
+
     return jsonify({
         'message': 'Condition added',
         'condition': condition.to_dict()
@@ -397,18 +397,18 @@ def add_condition(scene_id):
 def remove_condition(scene_id, condition_id):
     """
     Remove a condition from a scene.
-    
+
     UC-5: Scene condition management
-    
+
     Returns:
         200: Condition removed
         404: Condition not found
     """
     success, error = SceneService.remove_condition(condition_id)
-    
+
     if error:
         return jsonify({'error': error}), 404
-    
+
     return jsonify({'message': 'Condition removed'}), 200
 
 
@@ -417,32 +417,32 @@ def remove_condition(scene_id, condition_id):
 def add_action(scene_id):
     """
     Add an action to a scene.
-    
+
     UC-5: Scene action management
-    
+
     Request Body:
         actuator_id: Actuator ID
         action_value: Action value (ON, OFF, etc.)
-        
+
     Returns:
         201: Action added
         400: Validation error
         404: Scene or actuator not found
     """
     data = request.get_json()
-    
+
     if not data:
         return jsonify({'error': 'No data provided'}), 400
-    
+
     action, error = SceneService.add_action(
         scene_id=scene_id,
         actuator_id=data.get('actuator_id'),
         action_value=data.get('action_value')
     )
-    
+
     if error:
         return jsonify({'error': error}), 404 if 'not found' in error else 400
-    
+
     return jsonify({
         'message': 'Action added',
         'action': action.to_dict()
@@ -454,18 +454,18 @@ def add_action(scene_id):
 def remove_action(scene_id, action_id):
     """
     Remove an action from a scene.
-    
+
     UC-5: Scene action management
-    
+
     Returns:
         200: Action removed
         404: Action not found
     """
     success, error = SceneService.remove_action(action_id)
-    
+
     if error:
         return jsonify({'error': error}), 404
-    
+
     return jsonify({'message': 'Action removed'}), 200
 
 
@@ -475,10 +475,10 @@ def check_scenes():
     """
     Check all active scenes and execute if conditions are met.
     This endpoint is typically called by the system or scheduler.
-    
+
     Returns:
         200: Scenes checked
     """
     SceneService.check_and_execute_scenes()
-    
+
     return jsonify({'message': 'Scenes checked'}), 200

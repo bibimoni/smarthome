@@ -16,7 +16,7 @@ sensors_bp = Blueprint('sensors', __name__)
 def get_sensors():
     """
     Get all sensors.
-    
+
     UC-1: Real-time environment monitoring
     ---
     tags:
@@ -51,7 +51,7 @@ def get_sensors():
 def get_sensor(sensor_id):
     """
     Get a specific sensor.
-    
+
     ---
     tags:
       - Sensors
@@ -79,7 +79,7 @@ def get_sensor(sensor_id):
     sensor = DeviceService.get_sensor_by_id(sensor_id)
     if not sensor:
         return jsonify({'error': 'Sensor not found'}), 404
-    
+
     return jsonify({'sensor': sensor.to_dict()}), 200
 
 
@@ -88,7 +88,7 @@ def get_sensor(sensor_id):
 def get_current_readings():
     """
     Get current readings from all sensors.
-    
+
     UC-1: Real-time environment monitoring
     ---
     tags:
@@ -122,7 +122,7 @@ def get_current_readings():
 def get_sensor_data(sensor_id):
     """
     Get historical data for a sensor.
-    
+
     UC-1: Real-time environment monitoring (history)
     ---
     tags:
@@ -170,12 +170,11 @@ def get_sensor_data(sensor_id):
     sensor = DeviceService.get_sensor_by_id(sensor_id)
     if not sensor:
         return jsonify({'error': 'Sensor not found'}), 404
-    
-    # Parse query parameters
+
     hours = request.args.get('hours', 24, type=int)
     start_str = request.args.get('start')
     end_str = request.args.get('end')
-    
+
     if start_str and end_str:
         try:
             start_time = datetime.fromisoformat(start_str.replace('Z', '+00:00'))
@@ -185,7 +184,7 @@ def get_sensor_data(sensor_id):
             return jsonify({'error': 'Invalid datetime format'}), 400
     else:
         data = SensorService.get_sensor_data_history(sensor_id, hours)
-    
+
     return jsonify({
         'sensor': sensor.to_dict(),
         'data': [d.to_dict() for d in data],
@@ -198,7 +197,7 @@ def get_sensor_data(sensor_id):
 def get_sensor_statistics(sensor_id):
     """
     Get statistics for a sensor.
-    
+
     ---
     tags:
       - Sensors
@@ -236,10 +235,10 @@ def get_sensor_statistics(sensor_id):
     sensor = DeviceService.get_sensor_by_id(sensor_id)
     if not sensor:
         return jsonify({'error': 'Sensor not found'}), 404
-    
+
     hours = request.args.get('hours', 24, type=int)
     stats = SensorService.get_sensor_statistics(sensor_id, hours)
-    
+
     return jsonify({
         'sensor_id': sensor_id,
         'sensor_name': sensor.name,
@@ -253,7 +252,7 @@ def get_sensor_statistics(sensor_id):
 def get_latest_reading(sensor_id):
     """
     Get the latest reading for a sensor.
-    
+
     ---
     tags:
       - Sensors
@@ -283,9 +282,9 @@ def get_latest_reading(sensor_id):
     sensor = DeviceService.get_sensor_by_id(sensor_id)
     if not sensor:
         return jsonify({'error': 'Sensor not found'}), 404
-    
+
     latest = SensorService.get_latest_sensor_data(sensor_id)
-    
+
     return jsonify({
         'sensor': sensor.to_dict(),
         'latest_data': latest.to_dict() if latest else None
@@ -297,7 +296,7 @@ def get_latest_reading(sensor_id):
 def create_sensor():
     """
     Create a new sensor.
-    
+
     ---
     tags:
       - Sensors
@@ -347,10 +346,10 @@ def create_sensor():
           $ref: "#/definitions/Error"
     """
     data = request.get_json()
-    
+
     if not data:
         return jsonify({'error': 'No data provided'}), 400
-    
+
     sensor, error = DeviceService.create_sensor(
         name=data.get('name'),
         sensor_type=data.get('type'),
@@ -360,10 +359,10 @@ def create_sensor():
         max_value=data.get('max_value'),
         description=data.get('description')
     )
-    
+
     if error:
         return jsonify({'error': error}), 400
-    
+
     return jsonify({
         'message': 'Sensor created',
         'sensor': sensor.to_dict()
@@ -375,24 +374,24 @@ def create_sensor():
 def update_sensor(sensor_id):
     """
     Update a sensor.
-    
+
     Request Body:
         name: New name
         unit: New unit
         min_value: New minimum value
         max_value: New maximum value
         description: New description
-        
+
     Returns:
         200: Sensor updated
         400: Validation error
         404: Sensor not found
     """
     data = request.get_json()
-    
+
     if not data:
         return jsonify({'error': 'No data provided'}), 400
-    
+
     sensor, error = DeviceService.update_sensor(
         sensor_id=sensor_id,
         name=data.get('name'),
@@ -401,10 +400,10 @@ def update_sensor(sensor_id):
         max_value=data.get('max_value'),
         description=data.get('description')
     )
-    
+
     if error:
         return jsonify({'error': error}), 404 if 'not found' in error else 400
-    
+
     return jsonify({
         'message': 'Sensor updated',
         'sensor': sensor.to_dict()
@@ -416,14 +415,14 @@ def update_sensor(sensor_id):
 def delete_sensor(sensor_id):
     """
     Delete a sensor.
-    
+
     Returns:
         200: Sensor deleted
         404: Sensor not found
     """
     success, error = DeviceService.delete_sensor(sensor_id)
-    
+
     if error:
         return jsonify({'error': error}), 404
-    
+
     return jsonify({'message': 'Sensor deleted'}), 200

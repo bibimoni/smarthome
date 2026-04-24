@@ -71,7 +71,6 @@ def update_sensor_data():
     # Evaluate threshold rules after receiving new data
     try:
         ThresholdService.evaluate_all_rules()
-<<<<<<< HEAD
     except Exception as e:
         print(f"Error evaluating rules: {e}")
     
@@ -80,11 +79,6 @@ def update_sensor_data():
         SceneService.check_and_execute_scenes()
     except Exception as e:
         print(f"Error checking scenes: {e}")
-=======
-        SceneService.check_and_execute_scenes()
-    except Exception as e:
-        print(f"Error evaluating rules: {e}")
->>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
     
     return jsonify({
         'message': 'Data received',
@@ -368,8 +362,4 @@ def adafruit_webhook():
         from app.extensions import db
         db.session.commit()
     
-<<<<<<< HEAD
     return jsonify({'message': 'Webhook received'}), 200
-=======
-    return jsonify({'message': 'Webhook received'}), 200
->>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f

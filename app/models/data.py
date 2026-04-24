@@ -96,8 +96,6 @@ class EventLog(db.Model):
     TYPE_SCENE = 'SCENE'
     
     VALID_TYPES = [TYPE_ALERT, TYPE_AUTO, TYPE_MANUAL, TYPE_ERROR, TYPE_SCENE]
-<<<<<<< HEAD
-=======
 
     EVENT_TYPE_LABELS = {
         TYPE_ALERT: 'Cảnh báo',
@@ -106,7 +104,6 @@ class EventLog(db.Model):
         TYPE_ERROR: 'Lỗi',
         TYPE_SCENE: 'Kịch bản',
     }
->>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
     
     @staticmethod
     def log_event(event_type: str, description: str, actuator_id: int = None, 
@@ -199,10 +196,7 @@ class EventLog(db.Model):
         return {
             'id': self.id,
             'event_type': self.event_type,
-<<<<<<< HEAD
-=======
             'event_type_vi': self.EVENT_TYPE_LABELS.get(self.event_type, self.event_type),
->>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
             'actuator_id': self.actuator_id,
             'user_id': self.user_id,
             'device_name': self.device_name,

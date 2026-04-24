@@ -5,24 +5,20 @@ SWAGGER_TEMPLATE = {
     "info": {
         "title": "YoloHome IoT Smart Home API",
         "description": """
-## YoloHome Backend API
 
 A production-ready backend for the YoloHome IoT Smart Home system.
 
-### Features
 - **Real-time Monitoring** (UC-1): Monitor temperature, humidity, light levels, and motion detection
 - **Threshold Configuration** (UC-2): Set automation rules based on sensor values
 - **Manual Control** (UC-3): Control fans, LEDs, RGB lights, and LCD displays
 - **Activity History** (UC-4): View logs of all device activities and sensor readings
 - **Scene Creation** (UC-5): Create automation scenes with multiple conditions and actions
 
-### Authentication
 All protected endpoints require JWT authentication. Include the token in the Authorization header:
 ```
 Authorization: Bearer <your_access_token>
 ```
 
-### Supported Devices (YoloBit)
 | Type | Device | Function |
 |------|--------|----------|
 | Sensor | DHT20 | Temperature & Humidity |

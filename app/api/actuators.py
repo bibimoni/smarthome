@@ -16,7 +16,7 @@ actuators_bp = Blueprint('actuators', __name__)
 def get_actuators():
     """
     Get all actuators.
-    
+
     UC-3: Manual device control
     ---
     tags:
@@ -51,7 +51,7 @@ def get_actuators():
 def get_actuator(actuator_id):
     """
     Get a specific actuator.
-    
+
     ---
     tags:
       - Actuators
@@ -80,7 +80,7 @@ def get_actuator(actuator_id):
     actuator = DeviceService.get_actuator_by_id(actuator_id)
     if not actuator:
         return jsonify({'error': 'Actuator not found'}), 404
-    
+
     return jsonify({'actuator': actuator.to_dict()}), 200
 
 
@@ -89,7 +89,7 @@ def get_actuator(actuator_id):
 def get_all_status():
     """
     Get status of all actuators.
-    
+
     ---
     tags:
       - Actuators
@@ -121,7 +121,7 @@ def get_all_status():
 def get_status(actuator_id):
     """
     Get status of a specific actuator.
-    
+
     ---
     tags:
       - Actuators
@@ -149,7 +149,7 @@ def get_status(actuator_id):
     status = ActuatorService.get_actuator_status(actuator_id)
     if not status:
         return jsonify({'error': 'Actuator not found'}), 404
-    
+
     return jsonify({'status': status}), 200
 
 
@@ -159,7 +159,7 @@ def control_actuator(actuator_id):
 <<<<<<< HEAD
     """
     Control an actuator.
-    
+
     UC-3: Manual device control
     ---
     tags:
@@ -210,26 +210,26 @@ def control_actuator(actuator_id):
     """
     user_id = get_jwt_identity()
     data = request.get_json()
-    
+
     if not data:
         return jsonify({'error': 'No data provided'}), 400
-    
+
     action = data.get('action', '').upper()
     manual_override = data.get('manual_override', True)
-    
+
     if not action:
         return jsonify({'error': 'Action is required'}), 400
-    
+
     success, error = ActuatorService.control_actuator(
         actuator_id=actuator_id,
         action=action,
         user_id=user_id,
         manual_override=manual_override
     )
-    
+
     if error:
         return jsonify({'error': error}), 404 if 'not found' in error else 400
-    
+
     return jsonify({
         'message': f'Actuator set to {action}',
         'actuator_id': actuator_id,
@@ -275,7 +275,7 @@ def toggle_actuator(actuator_id):
 <<<<<<< HEAD
     """
     Toggle actuator on/off.
-    
+
     UC-3: Manual device control
     ---
     tags:
@@ -304,12 +304,12 @@ def toggle_actuator(actuator_id):
           $ref: "#/definitions/Error"
     """
     user_id = get_jwt_identity()
-    
+
     success, error = ActuatorService.toggle_actuator(actuator_id, user_id)
-    
+
     if error:
         return jsonify({'error': error}), 404 if 'not found' in error else 400
-    
+
     return jsonify({
         'message': 'Actuator toggled',
         'actuator_id': actuator_id
@@ -321,7 +321,7 @@ def toggle_actuator(actuator_id):
 def set_mode(actuator_id):
     """
     Set actuator mode (AUTO or MANUAL).
-    
+
     UC-3: Manual device control (mode override)
     ---
     tags:
@@ -369,20 +369,20 @@ def set_mode(actuator_id):
     """
     user_id = get_jwt_identity()
     data = request.get_json()
-    
+
     if not data:
         return jsonify({'error': 'No data provided'}), 400
-    
+
     mode = data.get('mode', '').upper()
-    
+
     if not mode:
         return jsonify({'error': 'Mode is required'}), 400
-    
+
     success, error = ActuatorService.set_actuator_mode(actuator_id, mode, user_id)
-    
+
     if error:
         return jsonify({'error': error}), 404 if 'not found' in error else 400
-    
+
     return jsonify({
         'message': f'Mode set to {mode}',
         'actuator_id': actuator_id,
@@ -395,7 +395,7 @@ def set_mode(actuator_id):
 def set_value(actuator_id):
     """
     Set actuator to a specific value.
-    
+
     UC-3: Manual device control
     ---
     tags:
@@ -443,20 +443,20 @@ def set_value(actuator_id):
     """
     user_id = get_jwt_identity()
     data = request.get_json()
-    
+
     if not data:
         return jsonify({'error': 'No data provided'}), 400
-    
+
     value = data.get('value')
-    
+
     if value is None:
         return jsonify({'error': 'Value is required'}), 400
-    
+
     success, error = ActuatorService.set_actuator_value(actuator_id, str(value), user_id)
-    
+
     if error:
         return jsonify({'error': error}), 404 if 'not found' in error else 400
-    
+
     return jsonify({
         'message': f'Value set to {value}',
         'actuator_id': actuator_id,
@@ -531,32 +531,32 @@ def set_value(actuator_id):
 def create_actuator():
     """
     Create a new actuator.
-    
+
     Request Body:
         name: Actuator name
         type: Actuator type (fan, led, rgb, servo, lcd)
         feed_key: Adafruit feed key
         description: Optional description
-        
+
     Returns:
         201: Actuator created
         400: Validation error
     """
     data = request.get_json()
-    
+
     if not data:
         return jsonify({'error': 'No data provided'}), 400
-    
+
     actuator, error = DeviceService.create_actuator(
         name=data.get('name'),
         actuator_type=data.get('type'),
         feed_key=data.get('feed_key'),
         description=data.get('description')
     )
-    
+
     if error:
         return jsonify({'error': error}), 400
-    
+
     return jsonify({
         'message': 'Actuator created',
         'actuator': actuator.to_dict()
@@ -568,29 +568,29 @@ def create_actuator():
 def update_actuator(actuator_id):
     """
     Update an actuator.
-    
+
     Request Body:
         name: New name
         description: New description
-        
+
     Returns:
         200: Actuator updated
         404: Actuator not found
     """
     data = request.get_json()
-    
+
     if not data:
         return jsonify({'error': 'No data provided'}), 400
-    
+
     actuator, error = DeviceService.update_actuator(
         actuator_id=actuator_id,
         name=data.get('name'),
         description=data.get('description')
     )
-    
+
     if error:
         return jsonify({'error': error}), 404
-    
+
     return jsonify({
         'message': 'Actuator updated',
         'actuator': actuator.to_dict()
@@ -602,14 +602,14 @@ def update_actuator(actuator_id):
 def delete_actuator(actuator_id):
     """
     Delete an actuator.
-    
+
     Returns:
         200: Actuator deleted
         404: Actuator not found
     """
     success, error = DeviceService.delete_actuator(actuator_id)
-    
+
     if error:
         return jsonify({'error': error}), 404
-    
+
     return jsonify({'message': 'Actuator deleted'}), 200

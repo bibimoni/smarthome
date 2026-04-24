@@ -1,10 +1,3 @@
-<<<<<<< HEAD
-"""Sensor and Actuator models for device management."""
-from datetime import datetime
-from app.extensions import db
-
-
-=======
 from __future__ import annotations
 
 """Sensor and Actuator models for device management."""
@@ -87,7 +80,6 @@ def normalize_actuator_description(name: str | None = None, actuator_type: str |
         return mapping[key]
     return normalize_actuator_name(name, actuator_type, feed_key)
 
->>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
 class Sensor(db.Model):
     """Sensor model for input devices (temperature, humidity, light, PIR)."""
     
@@ -139,15 +131,6 @@ class Sensor(db.Model):
             Sensor.TYPE_PIR: (0, 1),
         }
         return ranges.get(sensor_type, (None, None))
-<<<<<<< HEAD
-    
-    def get_latest_data(self) -> 'SensorData':
-        """Get the latest sensor data reading."""
-        return SensorData.query.filter_by(sensor_id=self.id).order_by(SensorData.recorded_at.desc()).first()
-    
-    def get_data_in_range(self, start_time: datetime, end_time: datetime) -> list:
-        """Get sensor data within a time range."""
-=======
 
     def get_latest_data(self):
         """Get the latest sensor data reading."""
@@ -157,7 +140,6 @@ class Sensor(db.Model):
     def get_data_in_range(self, start_time: datetime, end_time: datetime):
         """Get sensor data within a time range."""
         from app.models.data import SensorData
->>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
         return SensorData.query.filter(
             SensorData.sensor_id == self.id,
             SensorData.recorded_at >= start_time,
@@ -167,29 +149,19 @@ class Sensor(db.Model):
     def to_dict(self) -> dict:
         """Convert sensor to dictionary."""
         latest = self.get_latest_data()
-<<<<<<< HEAD
-        return {
-            'id': self.id,
-            'name': self.name,
-=======
         display_name = normalize_sensor_name(self.name, self.type, self.feed_key)
         return {
             'id': self.id,
             'name': display_name,
             'display_name_vi': display_name,
             'raw_name': self.name,
->>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
             'type': self.type,
             'feed_key': self.feed_key,
             'unit': self.unit,
             'min_value': self.min_value,
             'max_value': self.max_value,
-<<<<<<< HEAD
-            'description': self.description,
-=======
             'description': normalize_sensor_description(self.name, self.type, self.feed_key),
             'raw_description': self.description,
->>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
             'is_active': self.is_active,
             'latest_value': latest.value if latest else None,
             'latest_recorded_at': latest.recorded_at.isoformat() if latest and latest.recorded_at else None,
@@ -267,29 +239,19 @@ class Actuator(db.Model):
     
     def to_dict(self) -> dict:
         """Convert actuator to dictionary."""
-<<<<<<< HEAD
-        return {
-            'id': self.id,
-            'name': self.name,
-=======
         display_name = normalize_actuator_name(self.name, self.type, self.feed_key)
         return {
             'id': self.id,
             'name': display_name,
             'display_name_vi': display_name,
             'raw_name': self.name,
->>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
             'type': self.type,
             'feed_key': self.feed_key,
             'current_value': self.current_value,
             'mode': self.mode,
             'is_on': self.is_on(),
-<<<<<<< HEAD
-            'description': self.description,
-=======
             'description': normalize_actuator_description(self.name, self.type, self.feed_key),
             'raw_description': self.description,
->>>>>>> be1e4ea71bf986c0c527e009a8b815c2cf41e61f
             'is_active': self.is_active,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,

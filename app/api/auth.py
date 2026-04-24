@@ -17,7 +17,7 @@ auth_bp = Blueprint('auth', __name__)
 def register():
     """
     Register a new user.
-    
+
     UC-R: Register account
     ---
     tags:
@@ -70,20 +70,20 @@ def register():
           $ref: "#/definitions/Error"
     """
     data = request.get_json()
-    
+
     if not data:
         return jsonify({'error': 'No data provided'}), 400
-    
+
     email = data.get('email', '').strip()
     password = data.get('password', '')
     first_name = data.get('first_name', '').strip() or None
     last_name = data.get('last_name', '').strip() or None
-    
+
     user, error = AuthService.register_user(email, password, first_name, last_name)
-    
+
     if error:
         return jsonify({'error': error}), 400 if 'Invalid' in error or 'required' in error else 409
-    
+
     return jsonify({
         'message': 'User registered successfully',
         'user': user.to_dict()
@@ -94,37 +94,37 @@ def register():
 def register_google():
     """
     Register or login with Google OAuth.
-    
+
     UC-R: Register account with Gmail
-    
+
     Request Body:
         google_id: Google's unique user ID
         email: User's email from Google
         first_name: First name from Google
         last_name: Last name from Google
-    
+
     Returns:
         200: Login/Register successful
         400: Invalid data
     """
     data = request.get_json()
-    
+
     if not data:
         return jsonify({'error': 'No data provided'}), 400
-    
+
     google_id = data.get('google_id', '').strip()
     email = data.get('email', '').strip()
     first_name = data.get('first_name', '').strip() or None
     last_name = data.get('last_name', '').strip() or None
-    
+
     if not google_id or not email:
         return jsonify({'error': 'google_id and email are required'}), 400
-    
+
     result, error = AuthService.login_with_google(google_id, email, first_name, last_name)
-    
+
     if error:
         return jsonify({'error': error}), 400
-    
+
     return jsonify({
         'message': 'Login successful',
         **result
@@ -135,7 +135,7 @@ def register_google():
 def login():
     """
     Login with email and password.
-    
+
     UC-L: Login account
     ---
     tags:
@@ -176,21 +176,21 @@ def login():
           $ref: "#/definitions/Error"
     """
     data = request.get_json()
-    
+
     if not data:
         return jsonify({'error': 'No data provided'}), 400
-    
+
     email = data.get('email', '').strip()
     password = data.get('password', '')
-    
+
     if not email or not password:
         return jsonify({'error': 'Email and password are required'}), 400
-    
+
     result, error = AuthService.login(email, password)
-    
+
     if error:
         return jsonify({'error': error}), 401
-    
+
     return jsonify({
         'message': 'Login successful',
         **result
@@ -202,15 +202,15 @@ def login():
 def logout():
     """
     Logout the current user.
-    
+
     UC-L: Login account (logout part)
-    
+
     Returns:
         200: Logout successful
     """
     user_id = get_jwt_identity()
     AuthService.logout(user_id)
-    
+
     return jsonify({'message': 'Logout successful'}), 200
 
 
@@ -219,17 +219,17 @@ def logout():
 def refresh():
     """
     Refresh access token.
-    
+
     Returns:
         200: New access token
         401: Invalid token
     """
     user_id = get_jwt_identity()
     result, error = AuthService.refresh_token(user_id)
-    
+
     if error:
         return jsonify({'error': error}), 401
-    
+
     return jsonify(result), 200
 
 
@@ -238,17 +238,17 @@ def refresh():
 def get_profile():
     """
     Get current user profile.
-    
+
     Returns:
         200: User profile
         404: User not found
     """
     user_id = get_jwt_identity()
     user = AuthService.get_user_by_id(user_id)
-    
+
     if not user:
         return jsonify({'error': 'User not found'}), 404
-    
+
     return jsonify({'user': user.to_dict()}), 200
 
 
@@ -257,29 +257,29 @@ def get_profile():
 def update_profile():
     """
     Update current user profile.
-    
+
     Request Body:
         first_name: New first name
         last_name: New last name
-    
+
     Returns:
         200: Profile updated
         400: Validation error
     """
     user_id = get_jwt_identity()
     data = request.get_json()
-    
+
     if not data:
         return jsonify({'error': 'No data provided'}), 400
-    
+
     first_name = data.get('first_name')
     last_name = data.get('last_name')
-    
+
     user, error = AuthService.update_profile(user_id, first_name, last_name)
-    
+
     if error:
         return jsonify({'error': error}), 400
-    
+
     return jsonify({
         'message': 'Profile updated',
         'user': user.to_dict()
@@ -291,29 +291,29 @@ def update_profile():
 def change_password():
     """
     Change user's password.
-    
+
     Request Body:
         current_password: Current password
         new_password: New password
-    
+
     Returns:
         200: Password changed
         400: Validation error
     """
     user_id = get_jwt_identity()
     data = request.get_json()
-    
+
     if not data:
         return jsonify({'error': 'No data provided'}), 400
-    
+
     current_password = data.get('current_password', '')
     new_password = data.get('new_password', '')
-    
+
     success, error = AuthService.change_password(user_id, current_password, new_password)
-    
+
     if error:
         return jsonify({'error': error}), 400
-    
+
     return jsonify({'message': 'Password changed successfully'}), 200
 
 
@@ -321,28 +321,27 @@ def change_password():
 def forgot_password():
     """
     Request password reset OTP.
-    
+
     UC-FP: Forgot password
-    
+
     Request Body:
         email: User's email
-    
+
     Returns:
         200: OTP sent (or silent fail for security)
     """
     data = request.get_json()
-    
+
     if not data:
         return jsonify({'error': 'No data provided'}), 400
-    
+
     email = data.get('email', '').strip()
-    
+
     if not email:
         return jsonify({'error': 'Email is required'}), 400
-    
+
     token, error = AuthService.request_password_reset(email)
-    
-    # Send OTP via email if token was created
+
     if token:
         try:
             email_service = EmailService.get_instance()
@@ -354,8 +353,7 @@ def forgot_password():
                 )
         except Exception as e:
             current_app.logger.error(f"Failed to send OTP email: {e}")
-    
-    # Always return success to prevent email enumeration
+
     return jsonify({
         'message': 'If the email exists, a reset code has been sent'
     }), 200
@@ -365,35 +363,35 @@ def forgot_password():
 def reset_password():
     """
     Reset password with OTP.
-    
+
     UC-FP: Forgot password (reset part)
-    
+
     Request Body:
         email: User's email
         otp: The OTP code
         new_password: New password
-    
+
     Returns:
         200: Password reset successful
         400: Invalid or expired OTP
     """
     data = request.get_json()
-    
+
     if not data:
         return jsonify({'error': 'No data provided'}), 400
-    
+
     email = data.get('email', '').strip()
     otp = data.get('otp', '').strip()
     new_password = data.get('new_password', '')
-    
+
     if not email or not otp or not new_password:
         return jsonify({'error': 'Email, OTP, and new_password are required'}), 400
-    
+
     success, error = AuthService.reset_password(email, otp, new_password)
-    
+
     if error:
         return jsonify({'error': error}), 400
-    
+
     return jsonify({'message': 'Password reset successful'}), 200
 
 
@@ -401,31 +399,31 @@ def reset_password():
 def verify_otp():
     """
     Verify OTP without resetting password.
-    
+
     Request Body:
         email: User's email
         otp: The OTP code
-    
+
     Returns:
         200: OTP is valid
         400: Invalid OTP
     """
     data = request.get_json()
-    
+
     if not data:
         return jsonify({'error': 'No data provided'}), 400
-    
+
     email = data.get('email', '').strip()
     otp = data.get('otp', '').strip()
-    
+
     if not email or not otp:
         return jsonify({'error': 'Email and OTP are required'}), 400
-    
+
     user, error = AuthService.verify_reset_token(email, otp)
-    
+
     if error:
         return jsonify({'error': error}), 400
-    
+
     return jsonify({'message': 'OTP is valid', 'valid': True}), 200
 
 
@@ -434,14 +432,14 @@ def verify_otp():
 def deactivate_account():
     """
     Deactivate the current user's account.
-    
+
     Returns:
         200: Account deactivated
     """
     user_id = get_jwt_identity()
     success, error = AuthService.deactivate_account(user_id)
-    
+
     if error:
         return jsonify({'error': error}), 400
-    
+
     return jsonify({'message': 'Account deactivated'}), 200
