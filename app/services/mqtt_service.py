@@ -176,37 +176,51 @@ class MQTTService:
         from app.models.device import Sensor, Actuator
         from app.models.data import SensorData, EventLog
 
-        parts = topic.split('/')
-        if len(parts) >= 3:
-            feed_key = parts[2]
-        else:
+        app = self.flask_app
+        if app is None:
+            try:
+                from flask import current_app
+                app = current_app._get_current_object()
+            except RuntimeError:
+                pass
+
+        if app is None:
+            logger.warning("MQTT: No Flask app available, skipping sensor data processing")
             return
 
-        sensor = Sensor.query.filter_by(feed_key=feed_key).first()
-        if not sensor:
-            return
-
-        try:
-            if isinstance(data, dict):
-                value = float(data.get('value', data.get('last_value', 0)))
+        with app.app_context():
+            parts = topic.split('/')
+            if len(parts) >= 3:
+                feed_key = parts[2]
             else:
-                value = float(data)
-        except (ValueError, TypeError):
-            value = 0
+                return
 
-        sensor_data = SensorData(
-            sensor_id=sensor.id,
-            value=value
-        )
-        db.session.add(sensor_data)
-        db.session.commit()
+            sensor = Sensor.query.filter_by(feed_key=feed_key).first()
+            if not sensor:
+                return
 
-        self._check_threshold_rules(sensor, value)
+            try:
+                if isinstance(data, dict):
+                    value = float(data.get('value', data.get('last_value', 0)))
+                else:
+                    value = float(data)
+            except (ValueError, TypeError):
+                value = 0
+
+            sensor_data = SensorData(
+                sensor_id=sensor.id,
+                value=value
+            )
+            db.session.add(sensor_data)
+            db.session.commit()
+
+            self._check_threshold_rules(sensor, value)
 
     def _check_threshold_rules(self, sensor, value: float):
         """Check and execute threshold rules for a sensor."""
         from app.models.automation import ThresholdRule
         from app.models.data import EventLog
+        from app.models.device import Actuator
 
         rules = ThresholdRule.query.filter_by(
             sensor_id=sensor.id,

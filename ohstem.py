@@ -12,10 +12,10 @@ import ujson
 import umqtt.simple as mqtt
 from aiot_rgbled import RGBLed
 # Configuration
-WIFI_SSID = "OPPO A78"
-WIFI_PASSWORD = "373152361"
+WIFI_SSID = "HHN"
+WIFI_PASSWORD = "00000000"
 ADAFRUIT_IO_USERNAME = "quanghung2405"
-ADAFRUIT_IO_KEY = ""
+ADAFRUIT_IO_KEY = "aio_YiLX31g45u6wShi7wH6kNsTqmkwZ"
 DEVICE_LOCATION = "living-room"
 READ_INTERVAL = 10
 
@@ -55,7 +55,7 @@ def connect_wifi():
     return False
 
 def on_message(topic, msg):
-    global fan_speed, rgb_color
+    global fan_speed, rgb_color, led_state
     
     topic_str = topic.decode('utf-8')
     value = msg.decode('utf-8')
@@ -63,7 +63,13 @@ def on_message(topic, msg):
     
     if 'fan' in topic_str:
         try:
-            speed = max(0, min(100, int(value)))
+            val_int = int(value)
+            if val_int == 1:
+                speed = 100
+            elif val_int == 0:
+                speed = 0
+            else:
+                speed = max(0, min(100, val_int))
             fan_speed = speed
             pin1.write_analog(int(speed * 1023 / 100))
             print(f"Fan speed: {speed}%")
@@ -78,13 +84,15 @@ def on_message(topic, msg):
                 print("Fan: OFF")
     
     elif 'led' in topic_str:
-        if value.upper() == 'ON':
-            # Turn LED on (using pin2)
-            rgb_led.show(1, hex_to_rgb("#00ff00"))
+        clean_value = value.strip().upper()
+        if clean_value == 'ON' or clean_value == '1':
+            rgb_led.show(0, (0, 255, 0)) 
             led_state = "ON"
+            print("LED: ON")
         else:
-            rgb_led.show(1, hex_to_rgb("#000000"))
+            rgb_led.show(0, (0, 0, 0))
             led_state = "OFF"
+            print("LED: OFF")
 def connect_mqtt():
     global client
     try:

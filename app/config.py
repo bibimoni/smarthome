@@ -26,7 +26,7 @@ class Config:
     JWT_TOKEN_LOCATION = ['headers']
     JWT_COOKIE_CSRF_PROTECT = False
     JWT_JSON_KEY = 'identity'
-    JWT_HEADER_TYPE = None
+    JWT_HEADER_TYPE = 'Bearer'
 
     GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '')
     GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', '')
