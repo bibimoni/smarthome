@@ -15,7 +15,7 @@ from aiot_rgbled import RGBLed
 WIFI_SSID = "HHN"
 WIFI_PASSWORD = "00000000"
 ADAFRUIT_IO_USERNAME = "quanghung2405"
-ADAFRUIT_IO_KEY = "aio_YiLX31g45u6wShi7wH6kNsTqmkwZ"
+ADAFRUIT_IO_KEY = ""
 DEVICE_LOCATION = "living-room"
 READ_INTERVAL = 10
 
