@@ -35,7 +35,7 @@ def get_scenes():
             count:
               type: integer
     """
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     scenes = SceneService.get_all_scenes(user_id)
 
     return jsonify({
@@ -74,10 +74,14 @@ def get_scene(scene_id):
         schema:
           $ref: "#/definitions/Error"
     """
+    user_id = int(get_jwt_identity())
     scene = SceneService.get_scene_by_id(scene_id)
 
     if not scene:
         return jsonify({'error': 'Scene not found'}), 404
+
+    if scene.user_id != user_id:
+        return jsonify({'error': 'Access denied'}), 403
 
     return jsonify({'scene': scene.to_dict()}), 200
 
@@ -112,6 +116,14 @@ def get_scene_status(scene_id):
         schema:
           $ref: "#/definitions/Error"
     """
+    user_id = int(get_jwt_identity())
+    # Ownership check
+    scene = SceneService.get_scene_by_id(scene_id)
+    if not scene:
+        return jsonify({'error': 'Scene not found'}), 404
+    if scene.user_id != user_id:
+        return jsonify({'error': 'Access denied'}), 403
+
     status = SceneService.get_scene_status(scene_id)
 
     if not status:
@@ -171,7 +183,7 @@ def create_scene():
         schema:
           $ref: "#/definitions/Error"
     """
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     data = request.get_json()
 
     if not data:
@@ -243,10 +255,18 @@ def update_scene(scene_id):
         schema:
           $ref: "#/definitions/Error"
     """
+    user_id = int(get_jwt_identity())
     data = request.get_json()
 
     if not data:
         return jsonify({'error': 'No data provided'}), 400
+
+    # Ownership check
+    scene = SceneService.get_scene_by_id(scene_id)
+    if not scene:
+        return jsonify({'error': 'Scene not found'}), 404
+    if scene.user_id != user_id:
+        return jsonify({'error': 'Access denied'}), 403
 
     scene, error = SceneService.update_scene(
         scene_id=scene_id,
@@ -295,6 +315,14 @@ def delete_scene(scene_id):
         schema:
           $ref: "#/definitions/Error"
     """
+    user_id = int(get_jwt_identity())
+    # Ownership check
+    scene = SceneService.get_scene_by_id(scene_id)
+    if not scene:
+        return jsonify({'error': 'Scene not found'}), 404
+    if scene.user_id != user_id:
+        return jsonify({'error': 'Access denied'}), 403
+
     success, error = SceneService.delete_scene(scene_id)
 
     if error:
@@ -340,7 +368,13 @@ def execute_scene(scene_id):
         schema:
           $ref: "#/definitions/Error"
     """
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
+    # Ownership check
+    scene = SceneService.get_scene_by_id(scene_id)
+    if not scene:
+        return jsonify({'error': 'Scene not found'}), 404
+    if scene.user_id != user_id:
+        return jsonify({'error': 'Access denied'}), 403
 
     success, error = SceneService.execute_scene(scene_id, user_id)
 
@@ -371,6 +405,14 @@ def add_condition(scene_id):
         400: Validation error
         404: Scene or sensor not found
     """
+    user_id = int(get_jwt_identity())
+    # Ownership check on scene
+    scene = SceneService.get_scene_by_id(scene_id)
+    if not scene:
+        return jsonify({'error': 'Scene not found'}), 404
+    if scene.user_id != user_id:
+        return jsonify({'error': 'Access denied'}), 403
+
     data = request.get_json()
 
     if not data:
@@ -404,6 +446,14 @@ def remove_condition(scene_id, condition_id):
         200: Condition removed
         404: Condition not found
     """
+    user_id = int(get_jwt_identity())
+    # Ownership check on scene
+    scene = SceneService.get_scene_by_id(scene_id)
+    if not scene:
+        return jsonify({'error': 'Scene not found'}), 404
+    if scene.user_id != user_id:
+        return jsonify({'error': 'Access denied'}), 403
+
     success, error = SceneService.remove_condition(condition_id)
 
     if error:
@@ -429,6 +479,14 @@ def add_action(scene_id):
         400: Validation error
         404: Scene or actuator not found
     """
+    user_id = int(get_jwt_identity())
+    # Ownership check on scene
+    scene = SceneService.get_scene_by_id(scene_id)
+    if not scene:
+        return jsonify({'error': 'Scene not found'}), 404
+    if scene.user_id != user_id:
+        return jsonify({'error': 'Access denied'}), 403
+
     data = request.get_json()
 
     if not data:
@@ -461,6 +519,14 @@ def remove_action(scene_id, action_id):
         200: Action removed
         404: Action not found
     """
+    user_id = int(get_jwt_identity())
+    # Ownership check on scene
+    scene = SceneService.get_scene_by_id(scene_id)
+    if not scene:
+        return jsonify({'error': 'Scene not found'}), 404
+    if scene.user_id != user_id:
+        return jsonify({'error': 'Access denied'}), 403
+
     success, error = SceneService.remove_action(action_id)
 
     if error:

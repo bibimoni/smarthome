@@ -220,8 +220,9 @@ class ActuatorService:
         actuator.current_value = action
         actuator.updated_at = datetime.utcnow()
 
-        if mqtt_service:
-            mqtt_service.publish_actuator_command(actuator.feed_key, action)
+        mqtt = get_mqtt_service()
+        if mqtt:
+            mqtt.publish_actuator_command(actuator.feed_key, action)
 
         EventLog.log_event(
             event_type=EventLog.TYPE_AUTO,

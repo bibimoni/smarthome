@@ -10,6 +10,7 @@ class Sensor(db.Model):
     __tablename__ = 'sensors'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     name = db.Column(db.String(100), nullable=False)
     type = db.Column(db.String(50), nullable=False)
     feed_key = db.Column(db.String(255), nullable=False)
@@ -21,6 +22,7 @@ class Sensor(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
+    owner = db.relationship('User', backref='sensors')
     sensor_data = db.relationship('SensorData', backref='sensor', lazy=True, cascade='all, delete-orphan')
     threshold_rules = db.relationship('ThresholdRule', backref='sensor', lazy=True)
     scene_conditions = db.relationship('SceneCondition', backref='sensor', lazy=True)
@@ -71,6 +73,7 @@ class Sensor(db.Model):
         latest = self.get_latest_data()
         return {
             'id': self.id,
+            'user_id': self.user_id,
             'name': self.name,
             'type': self.type,
             'feed_key': self.feed_key,
@@ -95,6 +98,7 @@ class Actuator(db.Model):
     __tablename__ = 'actuators'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     name = db.Column(db.String(100), nullable=False)
     type = db.Column(db.String(50), nullable=False)
     feed_key = db.Column(db.String(255), nullable=False)
@@ -105,6 +109,7 @@ class Actuator(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
+    owner = db.relationship('User', backref='actuators')
     event_logs = db.relationship('EventLog', backref='actuator', lazy=True)
     threshold_rules = db.relationship('ThresholdRule', backref='actuator', lazy=True)
     scene_actions = db.relationship('SceneAction', backref='actuator', lazy=True)
@@ -153,6 +158,7 @@ class Actuator(db.Model):
         """Convert actuator to dictionary."""
         return {
             'id': self.id,
+            'user_id': self.user_id,
             'name': self.name,
             'type': self.type,
             'feed_key': self.feed_key,

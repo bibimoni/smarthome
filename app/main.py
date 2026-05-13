@@ -151,11 +151,28 @@ def _register_commands(app):
     def init_db():
         """Initialize the database with default data."""
         from app.services.device_service import DeviceService
+        from app.models.user import User
 
         click.echo('Initializing database...')
         db.create_all()
 
-        DeviceService.create_default_devices()
+        # Create demo user first for device ownership
+        demo_email = 'demo@yolohome.com'
+        demo_user = User.query.filter_by(email=demo_email).first()
+        if not demo_user:
+            demo_user = User(
+                email=demo_email,
+                first_name='Demo',
+                last_name='User',
+                is_active=True,
+                is_verified=True
+            )
+            demo_user.set_password('demo1234')
+            db.session.add(demo_user)
+            db.session.commit()
+            click.echo(f'Created demo user: {demo_email}')
+
+        DeviceService.create_default_devices(user_id=demo_user.id)
 
         click.echo('Database initialized successfully!')
 

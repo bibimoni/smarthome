@@ -5,8 +5,18 @@ Use Case: UC-2 Configure environmental thresholds (CRUD for rules, activate/deac
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.services.threshold_service import ThresholdService
+from app.models.device import Sensor, Actuator
 
 thresholds_bp = Blueprint('thresholds', __name__)
+
+
+def _check_rule_ownership(rule, user_id):
+    """Return 403 response if rule doesn't belong to user."""
+    if rule is None:
+        return None
+    if hasattr(rule, 'user_id') and rule.user_id != user_id:
+        return jsonify({'error': 'Access denied'}), 403
+    return None
 
 
 @thresholds_bp.route('/', methods=['GET'])
@@ -41,11 +51,14 @@ def get_rules():
             count:
               type: integer
     """
+    user_id = int(get_jwt_identity())
     is_active = request.args.get('is_active')
     if is_active is not None:
         is_active = is_active.lower() == 'true'
 
     rules = ThresholdService.get_all_rules(is_active)
+    # Filter rules to only those belonging to the current user
+    rules = [r for r in rules if r.user_id == user_id]
 
     return jsonify({
         'rules': [r.to_dict() for r in rules],
@@ -83,10 +96,15 @@ def get_rule(rule_id):
         schema:
           $ref: "#/definitions/Error"
     """
+    user_id = int(get_jwt_identity())
     rule = ThresholdService.get_rule_by_id(rule_id)
 
     if not rule:
         return jsonify({'error': 'Rule not found'}), 404
+
+    denied = _check_rule_ownership(rule, user_id)
+    if denied:
+        return denied
 
     return jsonify({'rule': rule.to_dict()}), 200
 
@@ -121,6 +139,14 @@ def get_rule_status(rule_id):
         schema:
           $ref: "#/definitions/Error"
     """
+    user_id = int(get_jwt_identity())
+    rule = ThresholdService.get_rule_by_id(rule_id)
+    if not rule:
+        return jsonify({'error': 'Rule not found'}), 404
+    denied = _check_rule_ownership(rule, user_id)
+    if denied:
+        return denied
+
     status = ThresholdService.get_rule_status(rule_id)
 
     if not status:
@@ -161,6 +187,12 @@ def get_rules_for_sensor(sensor_id):
             count:
               type: integer
     """
+    user_id = int(get_jwt_identity())
+    # Check sensor ownership
+    sensor = Sensor.query.get(sensor_id)
+    if not sensor or sensor.user_id != user_id:
+        return jsonify({'error': 'Sensor not found'}), 404
+
     rules = ThresholdService.get_rules_for_sensor(sensor_id)
 
     return jsonify({
@@ -202,6 +234,12 @@ def get_rules_for_actuator(actuator_id):
             count:
               type: integer
     """
+    user_id = int(get_jwt_identity())
+    # Check actuator ownership
+    actuator = Actuator.query.get(actuator_id)
+    if not actuator or actuator.user_id != user_id:
+        return jsonify({'error': 'Actuator not found'}), 404
+
     rules = ThresholdService.get_rules_for_actuator(actuator_id)
 
     return jsonify({
@@ -271,12 +309,24 @@ def create_rule():
         schema:
           $ref: "#/definitions/Error"
     """
+    user_id = int(get_jwt_identity())
     data = request.get_json()
 
     if not data:
         return jsonify({'error': 'No data provided'}), 400
 
+    # Verify sensor ownership
+    sensor = Sensor.query.get(data.get('sensor_id'))
+    if not sensor or sensor.user_id != user_id:
+        return jsonify({'error': 'Sensor not found'}), 404
+
+    # Verify actuator ownership
+    actuator = Actuator.query.get(data.get('actuator_id'))
+    if not actuator or actuator.user_id != user_id:
+        return jsonify({'error': 'Actuator not found'}), 404
+
     rule, error = ThresholdService.create_rule(
+        user_id=user_id,
         sensor_id=data.get('sensor_id'),
         operator=data.get('operator'),
         threshold_value=data.get('threshold_value'),
@@ -348,6 +398,15 @@ def update_rule(rule_id):
         schema:
           $ref: "#/definitions/Error"
     """
+    user_id = int(get_jwt_identity())
+    # Ownership check
+    existing_rule = ThresholdService.get_rule_by_id(rule_id)
+    if not existing_rule:
+        return jsonify({'error': 'Rule not found'}), 404
+    denied = _check_rule_ownership(existing_rule, user_id)
+    if denied:
+        return denied
+
     data = request.get_json()
 
     if not data:
@@ -402,6 +461,15 @@ def delete_rule(rule_id):
         schema:
           $ref: "#/definitions/Error"
     """
+    user_id = int(get_jwt_identity())
+    # Ownership check
+    rule = ThresholdService.get_rule_by_id(rule_id)
+    if not rule:
+        return jsonify({'error': 'Rule not found'}), 404
+    denied = _check_rule_ownership(rule, user_id)
+    if denied:
+        return denied
+
     success, error = ThresholdService.delete_rule(rule_id)
 
     if error:
@@ -443,6 +511,15 @@ def toggle_rule(rule_id):
         schema:
           $ref: "#/definitions/Error"
     """
+    user_id = int(get_jwt_identity())
+    # Ownership check
+    rule = ThresholdService.get_rule_by_id(rule_id)
+    if not rule:
+        return jsonify({'error': 'Rule not found'}), 404
+    denied = _check_rule_ownership(rule, user_id)
+    if denied:
+        return denied
+
     rule, error = ThresholdService.toggle_rule(rule_id)
 
     if error:
@@ -484,6 +561,15 @@ def evaluate_rule(rule_id):
             action:
               type: string
     """
+    user_id = int(get_jwt_identity())
+    # Ownership check
+    rule = ThresholdService.get_rule_by_id(rule_id)
+    if not rule:
+        return jsonify({'error': 'Rule not found'}), 404
+    denied = _check_rule_ownership(rule, user_id)
+    if denied:
+        return denied
+
     condition_met, action = ThresholdService.evaluate_rule(rule_id)
 
     return jsonify({
@@ -518,7 +604,16 @@ def evaluate_all_rules():
               items:
                 type: object
     """
+    user_id = int(get_jwt_identity())
+    # Only evaluate rules belonging to the current user
+    all_rules = ThresholdService.get_all_rules(is_active=True)
+    user_rule_ids = [r.id for r in all_rules if r.user_id == user_id]
+
     results = ThresholdService.evaluate_all_rules()
+    # Filter results to only include user's rules
+    results['executed'] = [r for r in results['executed'] if r['rule_id'] in user_rule_ids]
+    results['skipped'] = [r for r in results['skipped'] if r['rule_id'] in user_rule_ids]
+    results['errors'] = [r for r in results['errors'] if r['rule_id'] in user_rule_ids]
 
     return jsonify({
         'message': 'All rules evaluated',

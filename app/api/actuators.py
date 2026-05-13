@@ -39,7 +39,9 @@ def get_actuators():
               type: integer
               example: 3
     """
+    user_id = int(get_jwt_identity())
     actuators = DeviceService.get_all_actuators()
+    actuators = [a for a in actuators if a.user_id == user_id]
     return jsonify({
         'actuators': [a.to_dict() for a in actuators],
         'count': len(actuators)
@@ -77,9 +79,12 @@ def get_actuator(actuator_id):
         schema:
           $ref: "#/definitions/Error"
     """
+    user_id = int(get_jwt_identity())
     actuator = DeviceService.get_actuator_by_id(actuator_id)
     if not actuator:
         return jsonify({'error': 'Actuator not found'}), 404
+    if actuator.user_id != user_id:
+        return jsonify({'error': 'Access denied'}), 403
 
     return jsonify({'actuator': actuator.to_dict()}), 200
 
@@ -109,10 +114,15 @@ def get_all_status():
             count:
               type: integer
     """
-    statuses = ActuatorService.get_all_actuator_statuses()
+    user_id = int(get_jwt_identity())
+    actuators = ActuatorService.get_all_actuator_statuses()
+    # Filter statuses to only include actuators owned by the user
+    user_actuators = DeviceService.get_all_actuators()
+    user_actuator_ids = {a.id for a in user_actuators if a.user_id == user_id}
+    actuators = [a for a in actuators if a.get('id') in user_actuator_ids]
     return jsonify({
-        'actuators': statuses,
-        'count': len(statuses)
+        'actuators': actuators,
+        'count': len(actuators)
     }), 200
 
 
@@ -146,6 +156,14 @@ def get_status(actuator_id):
         schema:
           $ref: "#/definitions/Error"
     """
+    user_id = int(get_jwt_identity())
+    # Ownership check
+    actuator = DeviceService.get_actuator_by_id(actuator_id)
+    if not actuator:
+        return jsonify({'error': 'Actuator not found'}), 404
+    if actuator.user_id != user_id:
+        return jsonify({'error': 'Access denied'}), 403
+
     status = ActuatorService.get_actuator_status(actuator_id)
     if not status:
         return jsonify({'error': 'Actuator not found'}), 404
@@ -207,7 +225,14 @@ def control_actuator(actuator_id):
         schema:
           $ref: "#/definitions/Error"
     """
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
+    # Ownership check
+    actuator = DeviceService.get_actuator_by_id(actuator_id)
+    if not actuator:
+        return jsonify({'error': 'Actuator not found'}), 404
+    if actuator.user_id != user_id:
+        return jsonify({'error': 'Access denied'}), 403
+
     data = request.get_json()
 
     if not data:
@@ -269,7 +294,13 @@ def toggle_actuator(actuator_id):
         schema:
           $ref: "#/definitions/Error"
     """
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
+    # Ownership check
+    actuator = DeviceService.get_actuator_by_id(actuator_id)
+    if not actuator:
+        return jsonify({'error': 'Actuator not found'}), 404
+    if actuator.user_id != user_id:
+        return jsonify({'error': 'Access denied'}), 403
 
     success, error = ActuatorService.toggle_actuator(actuator_id, user_id)
 
@@ -333,7 +364,14 @@ def set_mode(actuator_id):
         schema:
           $ref: "#/definitions/Error"
     """
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
+    # Ownership check
+    actuator = DeviceService.get_actuator_by_id(actuator_id)
+    if not actuator:
+        return jsonify({'error': 'Actuator not found'}), 404
+    if actuator.user_id != user_id:
+        return jsonify({'error': 'Access denied'}), 403
+
     data = request.get_json()
 
     if not data:
@@ -407,7 +445,14 @@ def set_value(actuator_id):
         schema:
           $ref: "#/definitions/Error"
     """
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
+    # Ownership check
+    actuator = DeviceService.get_actuator_by_id(actuator_id)
+    if not actuator:
+        return jsonify({'error': 'Actuator not found'}), 404
+    if actuator.user_id != user_id:
+        return jsonify({'error': 'Access denied'}), 403
+
     data = request.get_json()
 
     if not data:
@@ -446,15 +491,21 @@ def create_actuator():
         201: Actuator created
         400: Validation error
     """
+    user_id = int(get_jwt_identity())
     data = request.get_json()
 
     if not data:
         return jsonify({'error': 'No data provided'}), 400
 
+    feed_key = str(data.get('feed_key') or '').strip()
+    if not feed_key:
+        return jsonify({'error': 'feed_key is required'}), 400
+
     actuator, error = DeviceService.create_actuator(
+        user_id=user_id,
         name=data.get('name'),
         actuator_type=data.get('type'),
-        feed_key=data.get('feed_key'),
+        feed_key=feed_key,
         description=data.get('description')
     )
 
@@ -481,10 +532,18 @@ def update_actuator(actuator_id):
         200: Actuator updated
         404: Actuator not found
     """
+    user_id = int(get_jwt_identity())
     data = request.get_json()
 
     if not data:
         return jsonify({'error': 'No data provided'}), 400
+
+    # Ownership check
+    actuator = DeviceService.get_actuator_by_id(actuator_id)
+    if not actuator:
+        return jsonify({'error': 'Actuator not found'}), 404
+    if actuator.user_id != user_id:
+        return jsonify({'error': 'Access denied'}), 403
 
     actuator, error = DeviceService.update_actuator(
         actuator_id=actuator_id,
@@ -511,6 +570,14 @@ def delete_actuator(actuator_id):
         200: Actuator deleted
         404: Actuator not found
     """
+    user_id = int(get_jwt_identity())
+    # Ownership check
+    actuator = DeviceService.get_actuator_by_id(actuator_id)
+    if not actuator:
+        return jsonify({'error': 'Actuator not found'}), 404
+    if actuator.user_id != user_id:
+        return jsonify({'error': 'Access denied'}), 403
+
     success, error = DeviceService.delete_actuator(actuator_id)
 
     if error:

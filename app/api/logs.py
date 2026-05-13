@@ -6,6 +6,7 @@ from datetime import datetime
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.models.data import EventLog
+from app.models.device import Actuator
 
 logs_bp = Blueprint('logs', __name__)
 
@@ -72,13 +73,16 @@ def get_logs():
                 pages:
                   type: integer
     """
+    current_user_id = int(get_jwt_identity())
     event_type = request.args.get('event_type')
     actuator_id = request.args.get('actuator_id', type=int)
-    user_id = request.args.get('user_id', type=int)
     start_date_str = request.args.get('start_date')
     end_date_str = request.args.get('end_date')
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 20, type=int)
+
+    # Force filter to current user's logs - ignore any user_id query param
+    user_id = current_user_id
 
     start_date = None
     end_date = None
@@ -146,10 +150,15 @@ def get_log(log_id):
         schema:
           $ref: "#/definitions/Error"
     """
+    user_id = int(get_jwt_identity())
     log = EventLog.query.get(log_id)
 
     if not log:
         return jsonify({'error': 'Log not found'}), 404
+
+    # Only allow access to user's own logs
+    if log.user_id is not None and log.user_id != user_id:
+        return jsonify({'error': 'Access denied'}), 403
 
     return jsonify({'log': log.to_dict()}), 200
 
@@ -183,7 +192,11 @@ def get_logs_summary():
     from app.extensions import db
     from sqlalchemy import func
 
+    current_user_id = int(get_jwt_identity())
     days = request.args.get('days', 7, type=int)
+
+    # Get user's actuator IDs for filtering
+    user_actuator_ids = [a.id for a in Actuator.query.filter_by(user_id=current_user_id, is_active=True).all()]
 
     end_date = datetime.utcnow()
     start_date = datetime(end_date.year, end_date.month, end_date.day) - __import__('datetime').timedelta(days=days)
@@ -192,11 +205,19 @@ def get_logs_summary():
         EventLog.event_type,
         func.count(EventLog.id).label('count')
     ).filter(
-        EventLog.created_at >= start_date
+        EventLog.created_at >= start_date,
+        db.or_(
+            EventLog.user_id == current_user_id,
+            EventLog.actuator_id.in_(user_actuator_ids)
+        )
     ).group_by(EventLog.event_type).all()
 
     total = db.session.query(func.count(EventLog.id)).filter(
-        EventLog.created_at >= start_date
+        EventLog.created_at >= start_date,
+        db.or_(
+            EventLog.user_id == current_user_id,
+            EventLog.actuator_id.in_(user_actuator_ids)
+        )
     ).scalar()
 
     actuator_counts = db.session.query(
@@ -205,7 +226,8 @@ def get_logs_summary():
         func.count(EventLog.id).label('count')
     ).filter(
         EventLog.created_at >= start_date,
-        EventLog.actuator_id.isnot(None)
+        EventLog.actuator_id.isnot(None),
+        EventLog.actuator_id.in_(user_actuator_ids)
     ).group_by(EventLog.actuator_id, EventLog.device_name).order_by(
         func.count(EventLog.id).desc()
     ).limit(5).all()
@@ -241,8 +263,12 @@ def get_chart_data():
     from app.extensions import db
     from sqlalchemy import func
 
+    current_user_id = int(get_jwt_identity())
     days = request.args.get('days', 7, type=int)
     group_by = request.args.get('group_by', 'day')
+
+    # Get user's actuator IDs for filtering
+    user_actuator_ids = [a.id for a in Actuator.query.filter_by(user_id=current_user_id, is_active=True).all()]
 
     end_date = datetime.utcnow()
     start_date = end_date - __import__('datetime').timedelta(days=days)
@@ -257,7 +283,11 @@ def get_chart_data():
         EventLog.event_type,
         func.count(EventLog.id).label('count')
     ).filter(
-        EventLog.created_at >= start_date
+        EventLog.created_at >= start_date,
+        db.or_(
+            EventLog.user_id == current_user_id,
+            EventLog.actuator_id.in_(user_actuator_ids)
+        )
     ).group_by(date_trunc, EventLog.event_type).order_by(date_trunc).all()
 
     chart_data = {}

@@ -5,6 +5,16 @@ from flask import Flask
 from flask_jwt_extended import JWTManager, create_access_token
 
 
+def _make_scene_mock(**kwargs):
+    """Create a scene mock with user_id=1 by default."""
+    mock = MagicMock()
+    mock.user_id = kwargs.pop('user_id', 1)
+    mock.to_dict.return_value = kwargs.pop('to_dict', {'id': 1, 'name': 'Good Night'})
+    for k, v in kwargs.items():
+        setattr(mock, k, v)
+    return mock
+
+
 class TestScenesAPI:
     @pytest.fixture
     def app(self):
@@ -27,8 +37,7 @@ class TestScenesAPI:
     
     @patch('app.api.scenes.SceneService')
     def test_get_scenes(self, mock_service, client, auth_header):
-        mock_scene = MagicMock()
-        mock_scene.to_dict.return_value = {'id': 1, 'name': 'Good Night'}
+        mock_scene = _make_scene_mock()
         mock_service.get_all_scenes.return_value = [mock_scene]
         
         response = client.get('/api/scenes/', headers=auth_header)
@@ -39,8 +48,7 @@ class TestScenesAPI:
     
     @patch('app.api.scenes.SceneService')
     def test_get_scene_by_id(self, mock_service, client, auth_header):
-        mock_scene = MagicMock()
-        mock_scene.to_dict.return_value = {'id': 1, 'name': 'Good Night'}
+        mock_scene = _make_scene_mock()
         mock_service.get_scene_by_id.return_value = mock_scene
         
         response = client.get('/api/scenes/1', headers=auth_header)
@@ -59,6 +67,9 @@ class TestScenesAPI:
     
     @patch('app.api.scenes.SceneService')
     def test_get_scene_status(self, mock_service, client, auth_header):
+        # Route calls get_scene_by_id for ownership check first
+        mock_scene = _make_scene_mock()
+        mock_service.get_scene_by_id.return_value = mock_scene
         mock_service.get_scene_status.return_value = {'id': 1, 'conditions_met': True}
         
         response = client.get('/api/scenes/1/status', headers=auth_header)
@@ -69,7 +80,7 @@ class TestScenesAPI:
     
     @patch('app.api.scenes.SceneService')
     def test_get_scene_status_not_found(self, mock_service, client, auth_header):
-        mock_service.get_scene_status.return_value = None
+        mock_service.get_scene_by_id.return_value = None
         
         response = client.get('/api/scenes/999/status', headers=auth_header)
         
@@ -105,9 +116,13 @@ class TestScenesAPI:
     
     @patch('app.api.scenes.SceneService')
     def test_update_scene_success(self, mock_service, client, auth_header):
-        mock_scene = MagicMock()
-        mock_scene.to_dict.return_value = {'id': 1, 'name': 'Updated'}
-        mock_service.update_scene.return_value = (mock_scene, '')
+        # Route calls get_scene_by_id for ownership check first
+        mock_existing = _make_scene_mock()
+        mock_service.get_scene_by_id.return_value = mock_existing
+        
+        mock_updated = MagicMock()
+        mock_updated.to_dict.return_value = {'id': 1, 'name': 'Updated'}
+        mock_service.update_scene.return_value = (mock_updated, '')
         
         response = client.put('/api/scenes/1',
             json={'name': 'Updated'},
@@ -117,7 +132,7 @@ class TestScenesAPI:
     
     @patch('app.api.scenes.SceneService')
     def test_update_scene_not_found(self, mock_service, client, auth_header):
-        mock_service.update_scene.return_value = (None, 'Scene not found')
+        mock_service.get_scene_by_id.return_value = None
         
         response = client.put('/api/scenes/999',
             json={'name': 'Updated'},
@@ -127,6 +142,9 @@ class TestScenesAPI:
     
     @patch('app.api.scenes.SceneService')
     def test_delete_scene_success(self, mock_service, client, auth_header):
+        # Route calls get_scene_by_id for ownership check first
+        mock_existing = _make_scene_mock()
+        mock_service.get_scene_by_id.return_value = mock_existing
         mock_service.delete_scene.return_value = (True, '')
         
         response = client.delete('/api/scenes/1', headers=auth_header)
@@ -135,7 +153,7 @@ class TestScenesAPI:
     
     @patch('app.api.scenes.SceneService')
     def test_delete_scene_not_found(self, mock_service, client, auth_header):
-        mock_service.delete_scene.return_value = (False, 'Scene not found')
+        mock_service.get_scene_by_id.return_value = None
         
         response = client.delete('/api/scenes/999', headers=auth_header)
         
@@ -143,6 +161,9 @@ class TestScenesAPI:
     
     @patch('app.api.scenes.SceneService')
     def test_execute_scene_success(self, mock_service, client, auth_header):
+        # Route calls get_scene_by_id for ownership check first
+        mock_existing = _make_scene_mock()
+        mock_service.get_scene_by_id.return_value = mock_existing
         mock_service.execute_scene.return_value = (True, '')
         
         response = client.post('/api/scenes/1/execute', headers=auth_header)
@@ -151,7 +172,7 @@ class TestScenesAPI:
     
     @patch('app.api.scenes.SceneService')
     def test_execute_scene_not_found(self, mock_service, client, auth_header):
-        mock_service.execute_scene.return_value = (False, 'Scene not found')
+        mock_service.get_scene_by_id.return_value = None
         
         response = client.post('/api/scenes/999/execute', headers=auth_header)
         
@@ -159,6 +180,9 @@ class TestScenesAPI:
     
     @patch('app.api.scenes.SceneService')
     def test_execute_scene_inactive(self, mock_service, client, auth_header):
+        # Route calls get_scene_by_id for ownership check first
+        mock_existing = _make_scene_mock()
+        mock_service.get_scene_by_id.return_value = mock_existing
         mock_service.execute_scene.return_value = (False, 'Scene is not active')
         
         response = client.post('/api/scenes/1/execute', headers=auth_header)
@@ -167,6 +191,10 @@ class TestScenesAPI:
     
     @patch('app.api.scenes.SceneService')
     def test_add_condition_success(self, mock_service, client, auth_header):
+        # Route calls get_scene_by_id for ownership check first
+        mock_existing = _make_scene_mock()
+        mock_service.get_scene_by_id.return_value = mock_existing
+        
         mock_condition = MagicMock()
         mock_condition.to_dict.return_value = {'id': 1, 'sensor_id': 1}
         mock_service.add_condition.return_value = (mock_condition, '')
@@ -179,6 +207,9 @@ class TestScenesAPI:
     
     @patch('app.api.scenes.SceneService')
     def test_add_condition_invalid(self, mock_service, client, auth_header):
+        # Route calls get_scene_by_id for ownership check first
+        mock_existing = _make_scene_mock()
+        mock_service.get_scene_by_id.return_value = mock_existing
         mock_service.add_condition.return_value = (None, 'Sensor not found')
         
         response = client.post('/api/scenes/1/conditions',
@@ -189,6 +220,9 @@ class TestScenesAPI:
     
     @patch('app.api.scenes.SceneService')
     def test_remove_condition_success(self, mock_service, client, auth_header):
+        # Route calls get_scene_by_id for ownership check first
+        mock_existing = _make_scene_mock()
+        mock_service.get_scene_by_id.return_value = mock_existing
         mock_service.remove_condition.return_value = (True, '')
         
         response = client.delete('/api/scenes/1/conditions/1', headers=auth_header)
@@ -197,6 +231,9 @@ class TestScenesAPI:
     
     @patch('app.api.scenes.SceneService')
     def test_remove_condition_not_found(self, mock_service, client, auth_header):
+        # Route calls get_scene_by_id for ownership check first
+        mock_existing = _make_scene_mock()
+        mock_service.get_scene_by_id.return_value = mock_existing
         mock_service.remove_condition.return_value = (False, 'Condition not found')
         
         response = client.delete('/api/scenes/1/conditions/999', headers=auth_header)
@@ -205,6 +242,10 @@ class TestScenesAPI:
     
     @patch('app.api.scenes.SceneService')
     def test_add_action_success(self, mock_service, client, auth_header):
+        # Route calls get_scene_by_id for ownership check first
+        mock_existing = _make_scene_mock()
+        mock_service.get_scene_by_id.return_value = mock_existing
+        
         mock_action = MagicMock()
         mock_action.to_dict.return_value = {'id': 1, 'actuator_id': 1}
         mock_service.add_action.return_value = (mock_action, '')
@@ -217,6 +258,9 @@ class TestScenesAPI:
     
     @patch('app.api.scenes.SceneService')
     def test_remove_action_success(self, mock_service, client, auth_header):
+        # Route calls get_scene_by_id for ownership check first
+        mock_existing = _make_scene_mock()
+        mock_service.get_scene_by_id.return_value = mock_existing
         mock_service.remove_action.return_value = (True, '')
         
         response = client.delete('/api/scenes/1/actions/1', headers=auth_header)

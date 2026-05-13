@@ -170,41 +170,11 @@ else
 fi
 
 # ====================
-# Step 6: Initialize Default Data
+# Step 6: Create Default User & Initialize Data
 # ====================
-print_step "Step 6: Initializing default devices and data..."
+print_step "Step 6: Creating default user and initializing data..."
 
-# Create a setup script to initialize devices
-python3 << 'PYTHON_SCRIPT'
-import sys
-sys.path.insert(0, '.')
-
-from app.main import create_app
-from app.extensions import db
-from app.models.device import Sensor, Actuator
-from app.services.device_service import DeviceService
-
-app = create_app()
-with app.app_context():
-    # Check if devices already exist
-    sensor_count = Sensor.query.count()
-    actuator_count = Actuator.query.count()
-    
-    if sensor_count == 0 and actuator_count == 0:
-        print("Creating default sensors and actuators...")
-        DeviceService.create_default_devices()
-        print("✓ Default devices created successfully")
-    else:
-        print(f"✓ Database already has {sensor_count} sensors and {actuator_count} actuators")
-PYTHON_SCRIPT
-
-print_success "Default data initialized"
-
-# ====================
-# Step 7: Create Default User (Optional)
-# ====================
-print_step "Step 7: Checking for default user account..."
-
+# Create a setup script to initialize user and devices
 python3 << 'PYTHON_SCRIPT'
 import sys
 sys.path.insert(0, '.')
@@ -212,13 +182,14 @@ sys.path.insert(0, '.')
 from app.main import create_app
 from app.extensions import db
 from app.models.user import User
+from app.models.device import Sensor, Actuator
+from app.services.device_service import DeviceService
 from werkzeug.security import generate_password_hash
 
 app = create_app()
 with app.app_context():
-    # Check if any user exists
-    user = User.query.first()
-    
+    # Create default user first for device ownership
+    user = User.query.filter_by(email='admin@yolohome.local').first()
     if not user:
         print("Creating default admin user...")
         user = User(
@@ -231,13 +202,45 @@ with app.app_context():
         user.password_hash = generate_password_hash('admin123')
         db.session.add(user)
         db.session.commit()
-        print("✓ Default user created:")
-        print("  Email: admin@yolohome.local")
-        print("  Password: admin123")
-        print("  ⚠️  Please change the password after first login!")
+        print("  Default user created:")
+        print("    Email: admin@yolohome.local")
+        print("    Password: admin123")
     else:
-        print(f"✓ User account exists: {user.email}")
+        print(f"  User account exists: {user.email}")
+
+    # Create second test user (no devices — for ownership isolation testing)
+    user2 = User.query.filter_by(email='test@yolohome.local').first()
+    if not user2:
+        print("Creating test user (no devices)...")
+        user2 = User(
+            email='test@yolohome.local',
+            first_name='Test',
+            last_name='User',
+            is_active=True,
+            is_verified=True
+        )
+        user2.password_hash = generate_password_hash('test1234')
+        db.session.add(user2)
+        db.session.commit()
+        print("  Test user created:")
+        print("    Email: test@yolohome.local")
+        print("    Password: test1234")
+    else:
+        print(f"  Test user exists: {user2.email}")
+
+    # Check if devices already exist
+    sensor_count = Sensor.query.count()
+    actuator_count = Actuator.query.count()
+    
+    if sensor_count == 0 and actuator_count == 0:
+        print("Creating default sensors and actuators...")
+        DeviceService.create_default_devices(user_id=user.id)
+        print("  Default devices created successfully")
+    else:
+        print(f"  Database already has {sensor_count} sensors and {actuator_count} actuators")
 PYTHON_SCRIPT
+
+print_success "Default data initialized"
 
 # ====================
 # Step 8: Start Server

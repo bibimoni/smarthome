@@ -45,7 +45,7 @@ class ThresholdService:
     @staticmethod
     def create_rule(sensor_id: int, operator: str, threshold_value: float,
                     actuator_id: int, action_value: str,
-                    description: str = None) -> Tuple[Optional[ThresholdRule], str]:
+                    user_id: int = None, description: str = None) -> Tuple[Optional[ThresholdRule], str]:
         """
         Create a new threshold rule.
 
@@ -55,6 +55,7 @@ class ThresholdService:
             threshold_value: Threshold value
             actuator_id: Actuator ID to control
             action_value: Action to perform when rule triggers
+            user_id: Owner user ID
             description: Optional description
 
         Returns:
@@ -72,6 +73,7 @@ class ThresholdService:
             return None, f"Invalid operator. Must be one of: {ThresholdRule.VALID_OPERATORS}"
 
         rule = ThresholdRule(
+            user_id=user_id,
             sensor_id=sensor_id,
             operator=operator,
             threshold_value=threshold_value,

@@ -9,6 +9,7 @@ class ThresholdRule(db.Model):
     __tablename__ = 'threshold_rules'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     sensor_id = db.Column(db.Integer, db.ForeignKey('sensors.id', ondelete='CASCADE'), nullable=False)
     operator = db.Column(db.String(5), nullable=False)
     threshold_value = db.Column(db.Float, nullable=False)
@@ -18,6 +19,8 @@ class ThresholdRule(db.Model):
     description = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    owner = db.relationship('User', backref='threshold_rules')
 
     OP_GREATER = '>'
     OP_LESS = '<'
@@ -62,6 +65,7 @@ class ThresholdRule(db.Model):
         """Convert threshold rule to dictionary."""
         return {
             'id': self.id,
+            'user_id': self.user_id,
             'sensor_id': self.sensor_id,
             'sensor_name': self.sensor.name if self.sensor else None,
             'operator': self.operator,

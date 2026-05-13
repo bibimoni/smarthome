@@ -29,7 +29,7 @@ from app.models.automation import ThresholdRule
 from app.services.device_service import DeviceService
 
 
-def create_default_devices():
+def create_default_devices(user_id=None):
     """Create default sensors and actuators for YoloBit."""
     print("\n=== Creating Default Devices ===\n")
     
@@ -41,7 +41,7 @@ def create_default_devices():
             print(f"  [SKIP] Sensor '{sensor_config['name']}' already exists")
             continue
         
-        sensor = Sensor(**sensor_config)
+        sensor = Sensor(user_id=user_id, **sensor_config)
         db.session.add(sensor)
         print(f"  [CREATE] Sensor: {sensor_config['name']} ({sensor_config['type']})")
         sensors_created += 1
@@ -54,7 +54,7 @@ def create_default_devices():
             print(f"  [SKIP] Actuator '{actuator_config['name']}' already exists")
             continue
         
-        actuator = Actuator(**actuator_config)
+        actuator = Actuator(user_id=user_id, **actuator_config)
         db.session.add(actuator)
         print(f"  [CREATE] Actuator: {actuator_config['name']} ({actuator_config['type']})")
         actuators_created += 1
@@ -65,7 +65,7 @@ def create_default_devices():
     return sensors_created + actuators_created
 
 
-def create_default_threshold_rules():
+def create_default_threshold_rules(user_id=None):
     """Create some default threshold rules for demonstration."""
     print("\n=== Creating Default Threshold Rules ===\n")
     
@@ -126,6 +126,7 @@ def create_default_threshold_rules():
             continue
         
         rule = ThresholdRule(
+            user_id=user_id,
             sensor_id=sensor.id,
             operator=rule_config['operator'],
             threshold_value=rule_config['threshold_value'],
@@ -272,8 +273,11 @@ Examples:
         db.create_all()
         
         if args.create_defaults:
-            create_default_devices()
-            create_default_threshold_rules()
+            # Create demo user first to get user_id
+            demo_user = create_demo_user(args.user_email)
+            user_id = demo_user.id if demo_user else None
+            create_default_devices(user_id)
+            create_default_threshold_rules(user_id)
         
         if args.user_email:
             create_demo_user(args.user_email)
@@ -290,9 +294,10 @@ Examples:
         
         if not any([args.create_defaults, args.user_email, args.generate_token, args.show_info]):
             # Default: create everything
-            create_default_devices()
-            create_default_threshold_rules()
-            create_demo_user()
+            demo_user = create_demo_user()
+            user_id = demo_user.id if demo_user else None
+            create_default_devices(user_id)
+            create_default_threshold_rules(user_id)
             print_device_info()
             print_adafruit_feed_names(app)
     

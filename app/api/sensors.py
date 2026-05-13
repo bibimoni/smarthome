@@ -39,7 +39,9 @@ def get_sensors():
               type: integer
               example: 3
     """
+    user_id = int(get_jwt_identity())
     sensors = DeviceService.get_all_sensors()
+    sensors = [s for s in sensors if s.user_id == user_id]
     return jsonify({
         'sensors': [s.to_dict() for s in sensors],
         'count': len(sensors)
@@ -76,9 +78,12 @@ def get_sensor(sensor_id):
         schema:
           $ref: "#/definitions/Error"
     """
+    user_id = int(get_jwt_identity())
     sensor = DeviceService.get_sensor_by_id(sensor_id)
     if not sensor:
         return jsonify({'error': 'Sensor not found'}), 404
+    if sensor.user_id != user_id:
+        return jsonify({'error': 'Access denied'}), 403
 
     return jsonify({'sensor': sensor.to_dict()}), 200
 
@@ -110,7 +115,12 @@ def get_current_readings():
               type: string
               format: date-time
     """
+    user_id = int(get_jwt_identity())
     readings = SensorService.get_current_readings()
+    # Filter readings to only include sensors owned by the user
+    sensors = DeviceService.get_all_sensors()
+    user_sensor_ids = {s.id for s in sensors if s.user_id == user_id}
+    readings = [r for r in readings if r.get('sensor_id') in user_sensor_ids]
     return jsonify({
         'readings': readings,
         'timestamp': datetime.utcnow().isoformat()
@@ -167,9 +177,12 @@ def get_sensor_data(sensor_id):
         schema:
           $ref: "#/definitions/Error"
     """
+    user_id = int(get_jwt_identity())
     sensor = DeviceService.get_sensor_by_id(sensor_id)
     if not sensor:
         return jsonify({'error': 'Sensor not found'}), 404
+    if sensor.user_id != user_id:
+        return jsonify({'error': 'Access denied'}), 403
 
     hours = request.args.get('hours', 24, type=int)
     start_str = request.args.get('start')
@@ -232,9 +245,12 @@ def get_sensor_statistics(sensor_id):
         schema:
           $ref: "#/definitions/Error"
     """
+    user_id = int(get_jwt_identity())
     sensor = DeviceService.get_sensor_by_id(sensor_id)
     if not sensor:
         return jsonify({'error': 'Sensor not found'}), 404
+    if sensor.user_id != user_id:
+        return jsonify({'error': 'Access denied'}), 403
 
     hours = request.args.get('hours', 24, type=int)
     stats = SensorService.get_sensor_statistics(sensor_id, hours)
@@ -279,9 +295,12 @@ def get_latest_reading(sensor_id):
         schema:
           $ref: "#/definitions/Error"
     """
+    user_id = int(get_jwt_identity())
     sensor = DeviceService.get_sensor_by_id(sensor_id)
     if not sensor:
         return jsonify({'error': 'Sensor not found'}), 404
+    if sensor.user_id != user_id:
+        return jsonify({'error': 'Access denied'}), 403
 
     latest = SensorService.get_latest_sensor_data(sensor_id)
 
@@ -345,15 +364,21 @@ def create_sensor():
         schema:
           $ref: "#/definitions/Error"
     """
+    user_id = int(get_jwt_identity())
     data = request.get_json()
 
     if not data:
         return jsonify({'error': 'No data provided'}), 400
 
+    feed_key = str(data.get('feed_key') or '').strip()
+    if not feed_key:
+        return jsonify({'error': 'feed_key is required'}), 400
+
     sensor, error = DeviceService.create_sensor(
+        user_id=user_id,
         name=data.get('name'),
         sensor_type=data.get('type'),
-        feed_key=data.get('feed_key'),
+        feed_key=feed_key,
         unit=data.get('unit'),
         min_value=data.get('min_value'),
         max_value=data.get('max_value'),
@@ -387,10 +412,18 @@ def update_sensor(sensor_id):
         400: Validation error
         404: Sensor not found
     """
+    user_id = int(get_jwt_identity())
     data = request.get_json()
 
     if not data:
         return jsonify({'error': 'No data provided'}), 400
+
+    # Ownership check
+    sensor = DeviceService.get_sensor_by_id(sensor_id)
+    if not sensor:
+        return jsonify({'error': 'Sensor not found'}), 404
+    if sensor.user_id != user_id:
+        return jsonify({'error': 'Access denied'}), 403
 
     sensor, error = DeviceService.update_sensor(
         sensor_id=sensor_id,
@@ -420,6 +453,14 @@ def delete_sensor(sensor_id):
         200: Sensor deleted
         404: Sensor not found
     """
+    user_id = int(get_jwt_identity())
+    # Ownership check
+    sensor = DeviceService.get_sensor_by_id(sensor_id)
+    if not sensor:
+        return jsonify({'error': 'Sensor not found'}), 404
+    if sensor.user_id != user_id:
+        return jsonify({'error': 'Access denied'}), 403
+
     success, error = DeviceService.delete_sensor(sensor_id)
 
     if error:

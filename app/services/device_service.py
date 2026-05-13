@@ -56,18 +56,18 @@ class DeviceService:
     ]
 
     @staticmethod
-    def create_default_devices():
+    def create_default_devices(user_id=None):
         """Create default sensors and actuators for YoloBit."""
         for sensor_config in DeviceService.DEFAULT_SENSORS:
             existing = Sensor.query.filter_by(feed_key=sensor_config['feed_key']).first()
             if not existing:
-                sensor = Sensor(**sensor_config)
+                sensor = Sensor(user_id=user_id, **sensor_config)
                 db.session.add(sensor)
 
         for actuator_config in DeviceService.DEFAULT_ACTUATORS:
             existing = Actuator.query.filter_by(feed_key=actuator_config['feed_key']).first()
             if not existing:
-                actuator = Actuator(**actuator_config)
+                actuator = Actuator(user_id=user_id, **actuator_config)
                 db.session.add(actuator)
 
         db.session.commit()
@@ -85,7 +85,7 @@ class DeviceService:
 
     @staticmethod
     def create_sensor(name: str, sensor_type: str, feed_key: str,
-                      unit: str = None, min_value: float = None,
+                      user_id: int = None, unit: str = None, min_value: float = None,
                       max_value: float = None, description: str = None) -> Tuple[Optional[Sensor], str]:
         """
         Create a new sensor.
@@ -94,6 +94,7 @@ class DeviceService:
             name: Sensor name
             sensor_type: Sensor type (temperature, humidity, light, pir)
             feed_key: Adafruit IO feed key
+            user_id: Owner user ID
             unit: Unit of measurement
             min_value: Minimum value
             max_value: Maximum value
@@ -110,6 +111,7 @@ class DeviceService:
             return None, "Feed key already in use"
 
         sensor = Sensor(
+            user_id=user_id,
             name=name,
             type=sensor_type,
             feed_key=feed_key,
@@ -174,7 +176,7 @@ class DeviceService:
 
     @staticmethod
     def create_actuator(name: str, actuator_type: str, feed_key: str,
-                        description: str = None) -> Tuple[Optional[Actuator], str]:
+                        user_id: int = None, description: str = None) -> Tuple[Optional[Actuator], str]:
         """
         Create a new actuator.
 
@@ -182,6 +184,7 @@ class DeviceService:
             name: Actuator name
             actuator_type: Actuator type (fan, led, rgb, servo, lcd)
             feed_key: Adafruit IO feed key
+            user_id: Owner user ID
             description: Actuator description
 
         Returns:
@@ -195,6 +198,7 @@ class DeviceService:
             return None, "Feed key already in use"
 
         actuator = Actuator(
+            user_id=user_id,
             name=name,
             type=actuator_type,
             feed_key=feed_key,
