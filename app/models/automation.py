@@ -1,10 +1,10 @@
-"""Automation models: ThresholdRule, Scene, SceneCondition, SceneAction."""
+
 from datetime import datetime
 from app.extensions import db
 
 
 class ThresholdRule(db.Model):
-    """Threshold rule model for automated device control based on sensor readings."""
+
 
     __tablename__ = 'threshold_rules'
 
@@ -31,15 +31,8 @@ class ThresholdRule(db.Model):
     VALID_OPERATORS = [OP_GREATER, OP_LESS, OP_EQUAL, OP_GREATER_EQUAL, OP_LESS_EQUAL]
 
     def evaluate(self, current_value: float) -> bool:
-        """
-        Evaluate if the current sensor value triggers this rule.
 
-        Args:
-            current_value: Current sensor reading
 
-        Returns:
-            True if the rule condition is met
-        """
         if current_value is None:
             return False
 
@@ -56,13 +49,13 @@ class ThresholdRule(db.Model):
         return False
 
     def get_condition_string(self) -> str:
-        """Get a human-readable condition string."""
+
         sensor = self.sensor
         unit = sensor.unit if sensor else ''
         return f"{sensor.name if sensor else 'Sensor'} {self.operator} {self.threshold_value}{unit}"
 
     def to_dict(self) -> dict:
-        """Convert threshold rule to dictionary."""
+
         return {
             'id': self.id,
             'user_id': self.user_id,
@@ -85,7 +78,7 @@ class ThresholdRule(db.Model):
 
 
 class Scene(db.Model):
-    """Scene model for grouping conditions and actions for automation scenarios."""
+
 
     __tablename__ = 'scenes'
 
@@ -102,13 +95,8 @@ class Scene(db.Model):
     actions = db.relationship('SceneAction', backref='scene', lazy=True, cascade='all, delete-orphan')
 
     def evaluate_conditions(self) -> bool:
-        """
-        Evaluate all conditions for this scene.
-        All conditions must be met (AND logic).
 
-        Returns:
-            True if all conditions are met
-        """
+
         if not self.conditions:
             return False
 
@@ -118,12 +106,8 @@ class Scene(db.Model):
         return True
 
     def trigger(self) -> list:
-        """
-        Trigger all actions in this scene.
 
-        Returns:
-            List of executed SceneAction objects
-        """
+
         executed_actions = []
         for action in self.actions:
             action.execute()
@@ -135,7 +119,7 @@ class Scene(db.Model):
         return executed_actions
 
     def to_dict(self) -> dict:
-        """Convert scene to dictionary."""
+
         return {
             'id': self.id,
             'user_id': self.user_id,
@@ -154,7 +138,7 @@ class Scene(db.Model):
 
 
 class SceneCondition(db.Model):
-    """Scene condition model for defining when a scene should trigger."""
+
 
     __tablename__ = 'scene_conditions'
 
@@ -173,12 +157,8 @@ class SceneCondition(db.Model):
     VALID_OPERATORS = [OP_GREATER, OP_LESS, OP_EQUAL, OP_GREATER_EQUAL, OP_LESS_EQUAL]
 
     def evaluate(self) -> bool:
-        """
-        Evaluate if the current sensor value meets this condition.
 
-        Returns:
-            True if the condition is met
-        """
+
         from app.models.device import SensorData
 
         sensor = self.sensor
@@ -204,13 +184,13 @@ class SceneCondition(db.Model):
         return False
 
     def get_condition_string(self) -> str:
-        """Get a human-readable condition string."""
+
         sensor = self.sensor
         unit = sensor.unit if sensor else ''
         return f"{sensor.name if sensor else 'Sensor'} {self.operator} {self.threshold_value}{unit}"
 
     def to_dict(self) -> dict:
-        """Convert scene condition to dictionary."""
+
         return {
             'id': self.id,
             'scene_id': self.scene_id,
@@ -226,7 +206,7 @@ class SceneCondition(db.Model):
 
 
 class SceneAction(db.Model):
-    """Scene action model for defining what actions to execute when a scene triggers."""
+
 
     __tablename__ = 'scene_actions'
 
@@ -236,7 +216,7 @@ class SceneAction(db.Model):
     action_value = db.Column(db.String(50), nullable=False)
 
     def execute(self):
-        """Execute this action on the associated actuator."""
+
         from app.services.mqtt_service import MQTTService
 
         actuator = self.actuator
@@ -265,12 +245,12 @@ class SceneAction(db.Model):
         return True
 
     def get_action_string(self) -> str:
-        """Get a human-readable action string."""
+
         actuator = self.actuator
         return f"{actuator.name if actuator else 'Actuator'} → {self.action_value}"
 
     def to_dict(self) -> dict:
-        """Convert scene action to dictionary."""
+
         return {
             'id': self.id,
             'scene_id': self.scene_id,

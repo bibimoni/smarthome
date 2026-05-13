@@ -1,8 +1,5 @@
-"""Actuator API endpoints.
 
-Use Cases:
-- UC-3: Manual device control with AUTO/MANUAL mode override
-"""
+
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.services.actuator_service import ActuatorService
@@ -116,7 +113,7 @@ def get_all_status():
     """
     user_id = int(get_jwt_identity())
     actuators = ActuatorService.get_all_actuator_statuses()
-    # Filter statuses to only include actuators owned by the user
+
     user_actuators = DeviceService.get_all_actuators()
     user_actuator_ids = {a.id for a in user_actuators if a.user_id == user_id}
     actuators = [a for a in actuators if a.get('id') in user_actuator_ids]
@@ -157,7 +154,7 @@ def get_status(actuator_id):
           $ref: "#/definitions/Error"
     """
     user_id = int(get_jwt_identity())
-    # Ownership check
+
     actuator = DeviceService.get_actuator_by_id(actuator_id)
     if not actuator:
         return jsonify({'error': 'Actuator not found'}), 404
@@ -226,7 +223,7 @@ def control_actuator(actuator_id):
           $ref: "#/definitions/Error"
     """
     user_id = int(get_jwt_identity())
-    # Ownership check
+
     actuator = DeviceService.get_actuator_by_id(actuator_id)
     if not actuator:
         return jsonify({'error': 'Actuator not found'}), 404
@@ -295,7 +292,7 @@ def toggle_actuator(actuator_id):
           $ref: "#/definitions/Error"
     """
     user_id = int(get_jwt_identity())
-    # Ownership check
+
     actuator = DeviceService.get_actuator_by_id(actuator_id)
     if not actuator:
         return jsonify({'error': 'Actuator not found'}), 404
@@ -365,7 +362,7 @@ def set_mode(actuator_id):
           $ref: "#/definitions/Error"
     """
     user_id = int(get_jwt_identity())
-    # Ownership check
+
     actuator = DeviceService.get_actuator_by_id(actuator_id)
     if not actuator:
         return jsonify({'error': 'Actuator not found'}), 404
@@ -446,7 +443,7 @@ def set_value(actuator_id):
           $ref: "#/definitions/Error"
     """
     user_id = int(get_jwt_identity())
-    # Ownership check
+
     actuator = DeviceService.get_actuator_by_id(actuator_id)
     if not actuator:
         return jsonify({'error': 'Actuator not found'}), 404
@@ -538,7 +535,7 @@ def update_actuator(actuator_id):
     if not data:
         return jsonify({'error': 'No data provided'}), 400
 
-    # Ownership check
+
     actuator = DeviceService.get_actuator_by_id(actuator_id)
     if not actuator:
         return jsonify({'error': 'Actuator not found'}), 404
@@ -571,7 +568,7 @@ def delete_actuator(actuator_id):
         404: Actuator not found
     """
     user_id = int(get_jwt_identity())
-    # Ownership check
+
     actuator = DeviceService.get_actuator_by_id(actuator_id)
     if not actuator:
         return jsonify({'error': 'Actuator not found'}), 404

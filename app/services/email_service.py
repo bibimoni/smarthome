@@ -1,4 +1,4 @@
-"""Email service for sending OTP and notifications."""
+
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -8,12 +8,12 @@ from flask import current_app
 
 
 class EmailService:
-    """Service class for sending emails."""
+
 
     _instance = None
 
     def __new__(cls, *args, **kwargs):
-        """Singleton pattern implementation."""
+
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
@@ -21,7 +21,7 @@ class EmailService:
     def __init__(self, smtp_server: str = None, smtp_port: int = None,
                  smtp_username: str = None, smtp_password: str = None,
                  email_from: str = None):
-        """Initialize email service."""
+
         if hasattr(self, '_initialized') and self._initialized:
             return
 
@@ -37,12 +37,12 @@ class EmailService:
 
     @classmethod
     def get_instance(cls):
-        """Get the singleton instance."""
+
         return cls._instance
 
     @classmethod
     def init_app(cls, app):
-        """Initialize email service from Flask app config."""
+
         smtp_server = app.config.get('SMTP_SERVER')
         smtp_port = app.config.get('SMTP_PORT')
         smtp_username = app.config.get('SMTP_USERNAME')
@@ -57,18 +57,8 @@ class EmailService:
 
     def send_email(self, to_email: str, subject: str, body: str,
                    html_body: str = None) -> bool:
-        """
-        Send an email.
 
-        Args:
-            to_email: Recipient email address
-            subject: Email subject
-            body: Plain text body
-            html_body: Optional HTML body
 
-        Returns:
-            True if sent successfully
-        """
         if not self._initialized:
             print("Email service not initialized")
             return False
@@ -96,17 +86,8 @@ class EmailService:
 
     def send_otp_email(self, to_email: str, otp: str,
                        expires_at: datetime) -> bool:
-        """
-        Send OTP email for password reset.
 
-        Args:
-            to_email: Recipient email
-            otp: One-time password
-            expires_at: Expiration time
 
-        Returns:
-            True if sent successfully
-        """
         subject = "YoloHome - Password Reset Code"
 
         body = f"""
@@ -143,16 +124,8 @@ YoloHome Team
         return self.send_email(to_email, subject, body, html_body)
 
     def send_welcome_email(self, to_email: str, name: str) -> bool:
-        """
-        Send welcome email to new user.
 
-        Args:
-            to_email: Recipient email
-            name: User's name
 
-        Returns:
-            True if sent successfully
-        """
         subject = "Welcome to YoloHome!"
 
         body = f"""
@@ -176,17 +149,8 @@ YoloHome Team
 
     def send_alert_email(self, to_email: str, alert_title: str,
                          alert_message: str) -> bool:
-        """
-        Send alert notification email.
 
-        Args:
-            to_email: Recipient email
-            alert_title: Alert title
-            alert_message: Alert message
 
-        Returns:
-            True if sent successfully
-        """
         subject = f"YoloHome Alert: {alert_title}"
 
         body = f"""
@@ -207,7 +171,7 @@ email_service = None
 
 
 def init_email(app):
-    """Initialize email service from Flask app."""
+
     global email_service
     email_service = EmailService.init_app(app)
     return email_service

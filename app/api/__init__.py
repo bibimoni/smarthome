@@ -1,4 +1,4 @@
-"""API package for REST endpoints."""
+
 from app.api.auth import auth_bp
 from app.api.sensors import sensors_bp
 from app.api.actuators import actuators_bp

@@ -1,7 +1,5 @@
-"""Threshold API endpoints.
 
-Use Case: UC-2 Configure environmental thresholds (CRUD for rules, activate/deactivate)
-"""
+
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.services.threshold_service import ThresholdService
@@ -11,7 +9,7 @@ thresholds_bp = Blueprint('thresholds', __name__)
 
 
 def _check_rule_ownership(rule, user_id):
-    """Return 403 response if rule doesn't belong to user."""
+
     if rule is None:
         return None
     if hasattr(rule, 'user_id') and rule.user_id != user_id:
@@ -57,7 +55,7 @@ def get_rules():
         is_active = is_active.lower() == 'true'
 
     rules = ThresholdService.get_all_rules(is_active)
-    # Filter rules to only those belonging to the current user
+
     rules = [r for r in rules if r.user_id == user_id]
 
     return jsonify({
@@ -188,7 +186,7 @@ def get_rules_for_sensor(sensor_id):
               type: integer
     """
     user_id = int(get_jwt_identity())
-    # Check sensor ownership
+
     sensor = Sensor.query.get(sensor_id)
     if not sensor or sensor.user_id != user_id:
         return jsonify({'error': 'Sensor not found'}), 404
@@ -235,7 +233,7 @@ def get_rules_for_actuator(actuator_id):
               type: integer
     """
     user_id = int(get_jwt_identity())
-    # Check actuator ownership
+
     actuator = Actuator.query.get(actuator_id)
     if not actuator or actuator.user_id != user_id:
         return jsonify({'error': 'Actuator not found'}), 404
@@ -315,12 +313,12 @@ def create_rule():
     if not data:
         return jsonify({'error': 'No data provided'}), 400
 
-    # Verify sensor ownership
+
     sensor = Sensor.query.get(data.get('sensor_id'))
     if not sensor or sensor.user_id != user_id:
         return jsonify({'error': 'Sensor not found'}), 404
 
-    # Verify actuator ownership
+
     actuator = Actuator.query.get(data.get('actuator_id'))
     if not actuator or actuator.user_id != user_id:
         return jsonify({'error': 'Actuator not found'}), 404
@@ -399,7 +397,7 @@ def update_rule(rule_id):
           $ref: "#/definitions/Error"
     """
     user_id = int(get_jwt_identity())
-    # Ownership check
+
     existing_rule = ThresholdService.get_rule_by_id(rule_id)
     if not existing_rule:
         return jsonify({'error': 'Rule not found'}), 404
@@ -462,7 +460,7 @@ def delete_rule(rule_id):
           $ref: "#/definitions/Error"
     """
     user_id = int(get_jwt_identity())
-    # Ownership check
+
     rule = ThresholdService.get_rule_by_id(rule_id)
     if not rule:
         return jsonify({'error': 'Rule not found'}), 404
@@ -512,7 +510,7 @@ def toggle_rule(rule_id):
           $ref: "#/definitions/Error"
     """
     user_id = int(get_jwt_identity())
-    # Ownership check
+
     rule = ThresholdService.get_rule_by_id(rule_id)
     if not rule:
         return jsonify({'error': 'Rule not found'}), 404
@@ -562,7 +560,7 @@ def evaluate_rule(rule_id):
               type: string
     """
     user_id = int(get_jwt_identity())
-    # Ownership check
+
     rule = ThresholdService.get_rule_by_id(rule_id)
     if not rule:
         return jsonify({'error': 'Rule not found'}), 404
@@ -605,12 +603,12 @@ def evaluate_all_rules():
                 type: object
     """
     user_id = int(get_jwt_identity())
-    # Only evaluate rules belonging to the current user
+
     all_rules = ThresholdService.get_all_rules(is_active=True)
     user_rule_ids = [r.id for r in all_rules if r.user_id == user_id]
 
     results = ThresholdService.evaluate_all_rules()
-    # Filter results to only include user's rules
+
     results['executed'] = [r for r in results['executed'] if r['rule_id'] in user_rule_ids]
     results['skipped'] = [r for r in results['skipped'] if r['rule_id'] in user_rule_ids]
     results['errors'] = [r for r in results['errors'] if r['rule_id'] in user_rule_ids]

@@ -1,4 +1,4 @@
-"""Flask application factory and main entry point."""
+
 import os
 import logging
 from flask import Flask, jsonify
@@ -8,15 +8,8 @@ from app.extensions import db, jwt, cors, swagger
 
 
 def create_app(config_class=None):
-    """
-    Application factory for creating Flask app instances.
 
-    Args:
-        config_class: Configuration class to use
 
-    Returns:
-        Flask application instance
-    """
     if config_class is None:
         config_class = get_config()
 
@@ -46,7 +39,7 @@ def create_app(config_class=None):
 
 
 def _init_extensions(app):
-    """Initialize Flask extensions."""
+
     db.init_app(app)
     jwt.init_app(app)
     cors.init_app(app)
@@ -83,7 +76,7 @@ def _init_extensions(app):
 
 
 def _register_blueprints(app):
-    """Register Flask blueprints."""
+
     from app.api.auth import auth_bp
     from app.api.sensors import sensors_bp
     from app.api.actuators import actuators_bp
@@ -112,7 +105,7 @@ def _register_blueprints(app):
 
 
 def _register_error_handlers(app):
-    """Register error handlers."""
+
 
     @app.errorhandler(400)
     def bad_request(error):
@@ -144,19 +137,19 @@ def _register_error_handlers(app):
 
 
 def _register_commands(app):
-    """Register custom CLI commands."""
+
     import click
 
     @app.cli.command('init-db')
     def init_db():
-        """Initialize the database with default data."""
+
         from app.services.device_service import DeviceService
         from app.models.user import User
 
         click.echo('Initializing database...')
         db.create_all()
 
-        # Create demo user first for device ownership
+
         demo_email = 'demo@yolohome.com'
         demo_user = User.query.filter_by(email=demo_email).first()
         if not demo_user:
@@ -180,7 +173,7 @@ def _register_commands(app):
     @click.argument('email')
     @click.argument('password')
     def create_admin(email, password):
-        """Create an admin user."""
+
         from app.models.user import User
 
         user = User.query.filter_by(email=email).first()
@@ -200,7 +193,7 @@ def _register_commands(app):
 
     @app.cli.command('cleanup-sessions')
     def cleanup_sessions():
-        """Clean up expired sessions."""
+
         from app.models.user import Session
         count = Session.cleanup_expired()
         click.echo(f'Cleaned up {count} expired sessions.')
@@ -208,7 +201,7 @@ def _register_commands(app):
     @app.cli.command('cleanup-logs')
     @click.option('--days', default=365, help='Days to keep')
     def cleanup_logs(days):
-        """Clean up old event logs."""
+
         from app.models.data import EventLog
         count = EventLog.cleanup_old_logs(days)
         click.echo(f'Cleaned up {count} old event logs.')
@@ -216,7 +209,7 @@ def _register_commands(app):
     @app.cli.command('cleanup-sensor-data')
     @click.option('--days', default=90, help='Days to keep')
     def cleanup_sensor_data(days):
-        """Clean up old sensor data."""
+
         from app.models.data import SensorData
         count = SensorData.cleanup_old_data(days)
         click.echo(f'Cleaned up {count} old sensor data records.')

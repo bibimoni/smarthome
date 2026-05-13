@@ -1,7 +1,5 @@
-"""Event Log API endpoints.
 
-Use Case: UC-4 View activity history/logs with filtering
-"""
+
 from datetime import datetime
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
@@ -81,7 +79,7 @@ def get_logs():
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 20, type=int)
 
-    # Force filter to current user's logs - ignore any user_id query param
+
     user_id = current_user_id
 
     start_date = None
@@ -156,7 +154,7 @@ def get_log(log_id):
     if not log:
         return jsonify({'error': 'Log not found'}), 404
 
-    # Only allow access to user's own logs
+
     if log.user_id is not None and log.user_id != user_id:
         return jsonify({'error': 'Access denied'}), 403
 
@@ -195,7 +193,7 @@ def get_logs_summary():
     current_user_id = int(get_jwt_identity())
     days = request.args.get('days', 7, type=int)
 
-    # Get user's actuator IDs for filtering
+
     user_actuator_ids = [a.id for a in Actuator.query.filter_by(user_id=current_user_id, is_active=True).all()]
 
     end_date = datetime.utcnow()
@@ -267,7 +265,7 @@ def get_chart_data():
     days = request.args.get('days', 7, type=int)
     group_by = request.args.get('group_by', 'day')
 
-    # Get user's actuator IDs for filtering
+
     user_actuator_ids = [a.id for a in Actuator.query.filter_by(user_id=current_user_id, is_active=True).all()]
 
     end_date = datetime.utcnow()

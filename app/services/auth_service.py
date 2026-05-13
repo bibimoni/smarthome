@@ -1,4 +1,4 @@
-"""Authentication service for user management."""
+
 import re
 import secrets
 from datetime import datetime, timedelta
@@ -10,27 +10,19 @@ from app.models.user import User, Session, PasswordResetToken
 
 
 class AuthService:
-    """Service class for authentication operations."""
+
 
     EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
 
     @staticmethod
     def validate_email(email: str) -> bool:
-        """Validate email format."""
+
         return bool(AuthService.EMAIL_REGEX.match(email))
 
     @staticmethod
     def validate_password(password: str) -> Tuple[bool, str]:
-        """
-        Validate password strength.
 
-        Requirements:
-        - At least 8 characters
-        - Contains at least one letter and one number
 
-        Returns:
-            Tuple of (is_valid, error_message)
-        """
         if len(password) < 6:
             return False, "Password must be at least 6 characters long"
         return True, ""
@@ -38,18 +30,8 @@ class AuthService:
     @staticmethod
     def register_user(email: str, password: str, first_name: str = None,
                       last_name: str = None) -> Tuple[Optional[User], str]:
-        """
-        Register a new user with email and password.
 
-        Args:
-            email: User's email address
-            password: User's password
-            first_name: Optional first name
-            last_name: Optional last name
 
-        Returns:
-            Tuple of (User object or None, error message)
-        """
         if not AuthService.validate_email(email):
             return None, "Invalid email format"
 
@@ -78,18 +60,8 @@ class AuthService:
     @staticmethod
     def register_with_google(google_id: str, email: str,
                             first_name: str = None, last_name: str = None) -> Tuple[Optional[User], str]:
-        """
-        Register or login user with Google OAuth.
 
-        Args:
-            google_id: Google's unique user ID
-            email: User's email from Google
-            first_name: First name from Google
-            last_name: Last name from Google
 
-        Returns:
-            Tuple of (User object or None, error message)
-        """
         user = User.query.filter_by(google_id=google_id).first()
         if user:
             return user, ""
@@ -117,16 +89,8 @@ class AuthService:
 
     @staticmethod
     def login(email: str, password: str) -> Tuple[Optional[dict], str]:
-        """
-        Authenticate user with email and password.
 
-        Args:
-            email: User's email
-            password: User's password
 
-        Returns:
-            Tuple of (auth dict with tokens or None, error message)
-        """
         user = User.query.filter_by(email=email.lower()).first()
         if not user:
             return None, "Invalid email or password"
@@ -161,18 +125,8 @@ class AuthService:
     @staticmethod
     def login_with_google(google_id: str, email: str,
                          first_name: str = None, last_name: str = None) -> Tuple[Optional[dict], str]:
-        """
-        Authenticate or register user with Google OAuth.
 
-        Args:
-            google_id: Google's unique user ID
-            email: User's email from Google
-            first_name: First name from Google
-            last_name: Last name from Google
 
-        Returns:
-            Tuple of (auth dict with tokens or None, error message)
-        """
         user, error = AuthService.register_with_google(google_id, email, first_name, last_name)
         if not user:
             return None, error
@@ -200,16 +154,8 @@ class AuthService:
 
     @staticmethod
     def logout(user_id: int, session_token: str = None) -> bool:
-        """
-        Logout user by invalidating session.
 
-        Args:
-            user_id: User's ID
-            session_token: Optional session token to invalidate specific session
 
-        Returns:
-            True if logout successful
-        """
         if session_token:
             session = Session.query.filter_by(
                 user_id=user_id,
@@ -222,15 +168,8 @@ class AuthService:
 
     @staticmethod
     def refresh_token(user_id: int) -> Tuple[Optional[dict], str]:
-        """
-        Refresh access token for user.
 
-        Args:
-            user_id: User's ID
 
-        Returns:
-            Tuple of (token dict or None, error message)
-        """
         user = User.query.get(user_id)
         if not user:
             return None, "User not found"
@@ -247,28 +186,19 @@ class AuthService:
 
     @staticmethod
     def get_user_by_id(user_id: int) -> Optional[User]:
-        """Get user by ID."""
+
         return User.query.get(user_id)
 
     @staticmethod
     def get_user_by_email(email: str) -> Optional[User]:
-        """Get user by email."""
+
         return User.query.filter_by(email=email.lower()).first()
 
     @staticmethod
     def update_profile(user_id: int, first_name: str = None,
                        last_name: str = None) -> Tuple[Optional[User], str]:
-        """
-        Update user profile.
 
-        Args:
-            user_id: User's ID
-            first_name: New first name
-            last_name: New last name
 
-        Returns:
-            Tuple of (User object or None, error message)
-        """
         user = User.query.get(user_id)
         if not user:
             return None, "User not found"
@@ -285,17 +215,8 @@ class AuthService:
     @staticmethod
     def change_password(user_id: int, current_password: str,
                         new_password: str) -> Tuple[bool, str]:
-        """
-        Change user's password.
 
-        Args:
-            user_id: User's ID
-            current_password: Current password
-            new_password: New password
 
-        Returns:
-            Tuple of (success, error message)
-        """
         user = User.query.get(user_id)
         if not user:
             return False, "User not found"
@@ -317,15 +238,8 @@ class AuthService:
 
     @staticmethod
     def request_password_reset(email: str) -> Tuple[Optional[PasswordResetToken], str]:
-        """
-        Request a password reset token.
 
-        Args:
-            email: User's email
 
-        Returns:
-            Tuple of (PasswordResetToken or None, error message)
-        """
         user = User.query.filter_by(email=email.lower()).first()
         if not user:
             return None, ""
@@ -346,16 +260,8 @@ class AuthService:
 
     @staticmethod
     def verify_reset_token(email: str, token: str) -> Tuple[Optional[User], str]:
-        """
-        Verify password reset token.
 
-        Args:
-            email: User's email
-            token: The OTP token
 
-        Returns:
-            Tuple of (User or None, error message)
-        """
         user = User.query.filter_by(email=email.lower()).first()
         if not user:
             return None, "Invalid token"
@@ -376,17 +282,8 @@ class AuthService:
 
     @staticmethod
     def reset_password(email: str, token: str, new_password: str) -> Tuple[bool, str]:
-        """
-        Reset password using token.
 
-        Args:
-            email: User's email
-            token: The OTP token
-            new_password: New password
 
-        Returns:
-            Tuple of (success, error message)
-        """
         user, error = AuthService.verify_reset_token(email, token)
         if not user:
             return False, error
@@ -409,15 +306,8 @@ class AuthService:
 
     @staticmethod
     def deactivate_account(user_id: int) -> Tuple[bool, str]:
-        """
-        Deactivate user account.
 
-        Args:
-            user_id: User's ID
 
-        Returns:
-            Tuple of (success, error message)
-        """
         user = User.query.get(user_id)
         if not user:
             return False, "User not found"

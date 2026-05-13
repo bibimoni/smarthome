@@ -1,10 +1,10 @@
-"""SensorData and EventLog models for data storage and logging."""
+
 from datetime import datetime, timedelta
 from app.extensions import db
 
 
 class SensorData(db.Model):
-    """Sensor data model for storing sensor readings."""
+
 
     __tablename__ = 'sensor_data'
 
@@ -19,17 +19,8 @@ class SensorData(db.Model):
 
     @staticmethod
     def get_aggregated_data(sensor_id: int, interval: str = 'hour', days: int = 7) -> list:
-        """
-        Get aggregated data for a sensor.
 
-        Args:
-            sensor_id: The sensor ID
-            interval: Aggregation interval ('hour', 'day', 'week')
-            days: Number of days to look back
 
-        Returns:
-            List of aggregated data points
-        """
         end_time = datetime.utcnow()
         start_time = end_time - timedelta(days=days)
 
@@ -43,15 +34,8 @@ class SensorData(db.Model):
 
     @staticmethod
     def cleanup_old_data(days: int = 90):
-        """
-        Remove sensor data older than the specified number of days.
 
-        Args:
-            days: Number of days to keep (default 90)
 
-        Returns:
-            Number of deleted records
-        """
         cutoff_date = datetime.utcnow() - timedelta(days=days)
         old_data = SensorData.query.filter(SensorData.recorded_at < cutoff_date).all()
         count = len(old_data)
@@ -61,7 +45,7 @@ class SensorData(db.Model):
         return count
 
     def to_dict(self) -> dict:
-        """Convert sensor data to dictionary."""
+
         return {
             'id': self.id,
             'sensor_id': self.sensor_id,
@@ -74,7 +58,7 @@ class SensorData(db.Model):
 
 
 class EventLog(db.Model):
-    """Event log model for tracking system activities."""
+
 
     __tablename__ = 'event_logs'
 
@@ -98,20 +82,8 @@ class EventLog(db.Model):
     @staticmethod
     def log_event(event_type: str, description: str, actuator_id: int = None,
                   user_id: int = None, device_name: str = None, metadata: dict = None) -> 'EventLog':
-        """
-        Create and save a new event log entry.
 
-        Args:
-            event_type: Type of event (ALERT, AUTO, MANUAL, ERROR, SCENE)
-            description: Human-readable description of the event
-            actuator_id: Optional actuator ID involved
-            user_id: Optional user ID who triggered the event
-            device_name: Device name (stored separately for historical record)
-            metadata: Optional additional data as JSON
 
-        Returns:
-            The created EventLog instance
-        """
         event = EventLog(
             event_type=event_type,
             description=description,
@@ -128,21 +100,8 @@ class EventLog(db.Model):
     def get_logs_filtered(event_type: str = None, actuator_id: int = None,
                           user_id: int = None, start_date: datetime = None,
                           end_date: datetime = None, page: int = 1, per_page: int = 20) -> tuple:
-        """
-        Get filtered event logs with pagination.
 
-        Args:
-            event_type: Filter by event type
-            actuator_id: Filter by actuator ID
-            user_id: Filter by user ID
-            start_date: Filter events after this date
-            end_date: Filter events before this date
-            page: Page number for pagination
-            per_page: Number of items per page
 
-        Returns:
-            Tuple of (logs list, total count, total pages)
-        """
         query = EventLog.query
 
         if event_type:
@@ -164,15 +123,8 @@ class EventLog(db.Model):
 
     @staticmethod
     def cleanup_old_logs(days: int = 365):
-        """
-        Remove event logs older than the specified number of days.
 
-        Args:
-            days: Number of days to keep (default 365)
 
-        Returns:
-            Number of deleted records
-        """
         cutoff_date = datetime.utcnow() - timedelta(days=days)
         old_logs = EventLog.query.filter(EventLog.created_at < cutoff_date).all()
         count = len(old_logs)
@@ -182,7 +134,7 @@ class EventLog(db.Model):
         return count
 
     def to_dict(self) -> dict:
-        """Convert event log to dictionary."""
+
         return {
             'id': self.id,
             'event_type': self.event_type,

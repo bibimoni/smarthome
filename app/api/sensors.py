@@ -1,7 +1,5 @@
-"""Sensor API endpoints.
 
-Use Case: UC-1 Real-time environment monitoring
-"""
+
 from datetime import datetime
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
@@ -117,7 +115,7 @@ def get_current_readings():
     """
     user_id = int(get_jwt_identity())
     readings = SensorService.get_current_readings()
-    # Filter readings to only include sensors owned by the user
+
     sensors = DeviceService.get_all_sensors()
     user_sensor_ids = {s.id for s in sensors if s.user_id == user_id}
     readings = [r for r in readings if r.get('sensor_id') in user_sensor_ids]
@@ -418,7 +416,7 @@ def update_sensor(sensor_id):
     if not data:
         return jsonify({'error': 'No data provided'}), 400
 
-    # Ownership check
+
     sensor = DeviceService.get_sensor_by_id(sensor_id)
     if not sensor:
         return jsonify({'error': 'Sensor not found'}), 404
@@ -454,7 +452,7 @@ def delete_sensor(sensor_id):
         404: Sensor not found
     """
     user_id = int(get_jwt_identity())
-    # Ownership check
+
     sensor = DeviceService.get_sensor_by_id(sensor_id)
     if not sensor:
         return jsonify({'error': 'Sensor not found'}), 404

@@ -1,11 +1,11 @@
-"""Sensor and Actuator models for device management."""
+
 from datetime import datetime
 from app.extensions import db
 from app.models.data import SensorData
 
 
 class Sensor(db.Model):
-    """Sensor model for input devices (temperature, humidity, light, PIR)."""
+
 
     __tablename__ = 'sensors'
 
@@ -36,7 +36,7 @@ class Sensor(db.Model):
 
     @staticmethod
     def get_unit_for_type(sensor_type: str) -> str:
-        """Get the default unit for a sensor type."""
+
         units = {
             Sensor.TYPE_TEMPERATURE: '°C',
             Sensor.TYPE_HUMIDITY: '%',
@@ -47,7 +47,7 @@ class Sensor(db.Model):
 
     @staticmethod
     def get_range_for_type(sensor_type: str) -> tuple:
-        """Get the default min/max range for a sensor type."""
+
         ranges = {
             Sensor.TYPE_TEMPERATURE: (-40, 80),
             Sensor.TYPE_HUMIDITY: (0, 100),
@@ -57,11 +57,11 @@ class Sensor(db.Model):
         return ranges.get(sensor_type, (None, None))
 
     def get_latest_data(self) -> 'SensorData':
-        """Get the latest sensor data reading."""
+
         return SensorData.query.filter_by(sensor_id=self.id).order_by(SensorData.recorded_at.desc()).first()
 
     def get_data_in_range(self, start_time: datetime, end_time: datetime) -> list:
-        """Get sensor data within a time range."""
+
         return SensorData.query.filter(
             SensorData.sensor_id == self.id,
             SensorData.recorded_at >= start_time,
@@ -69,7 +69,7 @@ class Sensor(db.Model):
         ).order_by(SensorData.recorded_at.asc()).all()
 
     def to_dict(self) -> dict:
-        """Convert sensor to dictionary."""
+
         latest = self.get_latest_data()
         return {
             'id': self.id,
@@ -93,7 +93,7 @@ class Sensor(db.Model):
 
 
 class Actuator(db.Model):
-    """Actuator model for output devices (fan, LED, RGB, servo)."""
+
 
     __tablename__ = 'actuators'
 
@@ -131,19 +131,19 @@ class Actuator(db.Model):
     VALID_ACTIONS = [ACTION_ON, ACTION_OFF]
 
     def turn_on(self, value: str = None):
-        """Turn the actuator on."""
+
         self.current_value = value or self.ACTION_ON
         self.updated_at = datetime.utcnow()
         db.session.commit()
 
     def turn_off(self):
-        """Turn the actuator off."""
+
         self.current_value = self.ACTION_OFF
         self.updated_at = datetime.utcnow()
         db.session.commit()
 
     def set_mode(self, mode: str):
-        """Set the actuator mode (AUTO or MANUAL)."""
+
         if mode not in self.VALID_MODES:
             raise ValueError(f"Invalid mode: {mode}. Must be one of {self.VALID_MODES}")
         self.mode = mode
@@ -151,11 +151,11 @@ class Actuator(db.Model):
         db.session.commit()
 
     def is_on(self) -> bool:
-        """Check if the actuator is on."""
+
         return self.current_value and self.current_value.upper() != self.ACTION_OFF
 
     def to_dict(self) -> dict:
-        """Convert actuator to dictionary."""
+
         return {
             'id': self.id,
             'user_id': self.user_id,

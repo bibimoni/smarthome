@@ -1,4 +1,4 @@
-"""Health check endpoints for Docker and monitoring."""
+
 
 from flask import Blueprint, jsonify, current_app
 from app.extensions import db

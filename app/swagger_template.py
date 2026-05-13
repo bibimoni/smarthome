@@ -1,4 +1,4 @@
-"""Swagger/OpenAPI template configuration for YoloHome API."""
+
 
 SWAGGER_TEMPLATE = {
     "swagger": "2.0",

@@ -1,8 +1,5 @@
-"""IoT Gateway API endpoints.
 
-This module provides endpoints for YoloBit devices to communicate with the backend.
-It handles sensor data updates and command retrieval.
-"""
+
 from flask import Blueprint, request, jsonify
 from app.services.device_service import DeviceService
 from app.services.sensor_service import SensorService

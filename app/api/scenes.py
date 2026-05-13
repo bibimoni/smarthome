@@ -1,7 +1,5 @@
-"""Scene API endpoints.
 
-Use Case: UC-5 Create and run device control scenarios with conditions and actions
-"""
+
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.services.scene_service import SceneService
@@ -117,7 +115,7 @@ def get_scene_status(scene_id):
           $ref: "#/definitions/Error"
     """
     user_id = int(get_jwt_identity())
-    # Ownership check
+
     scene = SceneService.get_scene_by_id(scene_id)
     if not scene:
         return jsonify({'error': 'Scene not found'}), 404
@@ -261,7 +259,7 @@ def update_scene(scene_id):
     if not data:
         return jsonify({'error': 'No data provided'}), 400
 
-    # Ownership check
+
     scene = SceneService.get_scene_by_id(scene_id)
     if not scene:
         return jsonify({'error': 'Scene not found'}), 404
@@ -316,7 +314,7 @@ def delete_scene(scene_id):
           $ref: "#/definitions/Error"
     """
     user_id = int(get_jwt_identity())
-    # Ownership check
+
     scene = SceneService.get_scene_by_id(scene_id)
     if not scene:
         return jsonify({'error': 'Scene not found'}), 404
@@ -369,7 +367,7 @@ def execute_scene(scene_id):
           $ref: "#/definitions/Error"
     """
     user_id = int(get_jwt_identity())
-    # Ownership check
+
     scene = SceneService.get_scene_by_id(scene_id)
     if not scene:
         return jsonify({'error': 'Scene not found'}), 404
@@ -406,7 +404,7 @@ def add_condition(scene_id):
         404: Scene or sensor not found
     """
     user_id = int(get_jwt_identity())
-    # Ownership check on scene
+
     scene = SceneService.get_scene_by_id(scene_id)
     if not scene:
         return jsonify({'error': 'Scene not found'}), 404
@@ -447,7 +445,7 @@ def remove_condition(scene_id, condition_id):
         404: Condition not found
     """
     user_id = int(get_jwt_identity())
-    # Ownership check on scene
+
     scene = SceneService.get_scene_by_id(scene_id)
     if not scene:
         return jsonify({'error': 'Scene not found'}), 404
@@ -480,7 +478,7 @@ def add_action(scene_id):
         404: Scene or actuator not found
     """
     user_id = int(get_jwt_identity())
-    # Ownership check on scene
+
     scene = SceneService.get_scene_by_id(scene_id)
     if not scene:
         return jsonify({'error': 'Scene not found'}), 404
@@ -520,7 +518,7 @@ def remove_action(scene_id, action_id):
         404: Action not found
     """
     user_id = int(get_jwt_identity())
-    # Ownership check on scene
+
     scene = SceneService.get_scene_by_id(scene_id)
     if not scene:
         return jsonify({'error': 'Scene not found'}), 404

@@ -1,4 +1,4 @@
-"""Threshold service for automation rules management."""
+
 from typing import List, Optional, Tuple
 from datetime import datetime
 from app.extensions import db
@@ -9,19 +9,12 @@ from app.services.mqtt_service import mqtt_service
 
 
 class ThresholdService:
-    """Service class for threshold rule management."""
+
 
     @staticmethod
     def get_all_rules(is_active: bool = None) -> List[ThresholdRule]:
-        """
-        Get all threshold rules.
 
-        Args:
-            is_active: Optional filter by active status
 
-        Returns:
-            List of ThresholdRule objects
-        """
         query = ThresholdRule.query
         if is_active is not None:
             query = query.filter_by(is_active=is_active)
@@ -29,38 +22,25 @@ class ThresholdService:
 
     @staticmethod
     def get_rules_for_sensor(sensor_id: int) -> List[ThresholdRule]:
-        """Get all rules for a specific sensor."""
+
         return ThresholdRule.query.filter_by(sensor_id=sensor_id).all()
 
     @staticmethod
     def get_rules_for_actuator(actuator_id: int) -> List[ThresholdRule]:
-        """Get all rules controlling a specific actuator."""
+
         return ThresholdRule.query.filter_by(actuator_id=actuator_id).all()
 
     @staticmethod
     def get_rule_by_id(rule_id: int) -> Optional[ThresholdRule]:
-        """Get threshold rule by ID."""
+
         return ThresholdRule.query.get(rule_id)
 
     @staticmethod
     def create_rule(sensor_id: int, operator: str, threshold_value: float,
                     actuator_id: int, action_value: str,
                     user_id: int = None, description: str = None) -> Tuple[Optional[ThresholdRule], str]:
-        """
-        Create a new threshold rule.
 
-        Args:
-            sensor_id: Sensor ID to monitor
-            operator: Comparison operator (>, <, ==, >=, <=)
-            threshold_value: Threshold value
-            actuator_id: Actuator ID to control
-            action_value: Action to perform when rule triggers
-            user_id: Owner user ID
-            description: Optional description
 
-        Returns:
-            Tuple of (ThresholdRule or None, error message)
-        """
         sensor = Sensor.query.get(sensor_id)
         if not sensor:
             return None, "Sensor not found"
@@ -92,20 +72,8 @@ class ThresholdService:
     def update_rule(rule_id: int, operator: str = None, threshold_value: float = None,
                     action_value: str = None, description: str = None,
                     is_active: bool = None) -> Tuple[Optional[ThresholdRule], str]:
-        """
-        Update a threshold rule.
 
-        Args:
-            rule_id: Rule ID
-            operator: New operator
-            threshold_value: New threshold value
-            action_value: New action value
-            description: New description
-            is_active: New active status
 
-        Returns:
-            Tuple of (ThresholdRule or None, error message)
-        """
         rule = ThresholdRule.query.get(rule_id)
         if not rule:
             return None, "Rule not found"
@@ -134,7 +102,7 @@ class ThresholdService:
 
     @staticmethod
     def delete_rule(rule_id: int) -> Tuple[bool, str]:
-        """Delete a threshold rule."""
+
         rule = ThresholdRule.query.get(rule_id)
         if not rule:
             return False, "Rule not found"
@@ -146,15 +114,8 @@ class ThresholdService:
 
     @staticmethod
     def toggle_rule(rule_id: int) -> Tuple[Optional[ThresholdRule], str]:
-        """
-        Toggle a rule active/inactive.
 
-        Args:
-            rule_id: Rule ID
 
-        Returns:
-            Tuple of (ThresholdRule or None, error message)
-        """
         rule = ThresholdRule.query.get(rule_id)
         if not rule:
             return None, "Rule not found"
@@ -167,15 +128,8 @@ class ThresholdService:
 
     @staticmethod
     def evaluate_rule(rule_id: int) -> Tuple[bool, Optional[str]]:
-        """
-        Evaluate a rule against current sensor value.
 
-        Args:
-            rule_id: Rule ID
 
-        Returns:
-            Tuple of (condition_met, action_to_take)
-        """
         rule = ThresholdRule.query.get(rule_id)
         if not rule:
             return False, None
@@ -196,16 +150,8 @@ class ThresholdService:
 
     @staticmethod
     def evaluate_and_execute(rule_id: int) -> Tuple[bool, str]:
-        """
-        Evaluate a rule and execute action if condition is met.
-        Only executes if actuator is in AUTO mode.
 
-        Args:
-            rule_id: Rule ID
 
-        Returns:
-            Tuple of (executed, message)
-        """
         rule = ThresholdRule.query.get(rule_id)
         if not rule:
             return False, "Rule not found"
@@ -255,12 +201,8 @@ class ThresholdService:
 
     @staticmethod
     def evaluate_all_rules() -> dict:
-        """
-        Evaluate all active rules and execute actions where conditions are met.
 
-        Returns:
-            Dict with evaluation results
-        """
+
         rules = ThresholdRule.query.filter_by(is_active=True).all()
         results = {
             'executed': [],
@@ -291,15 +233,8 @@ class ThresholdService:
 
     @staticmethod
     def get_rule_status(rule_id: int) -> Optional[dict]:
-        """
-        Get status of a threshold rule.
 
-        Args:
-            rule_id: Rule ID
 
-        Returns:
-            Status dict or None
-        """
         rule = ThresholdRule.query.get(rule_id)
         if not rule:
             return None

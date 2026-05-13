@@ -1,4 +1,4 @@
-"""Application configuration module."""
+
 import os
 from datetime import timedelta
 from dotenv import load_dotenv
@@ -7,7 +7,7 @@ load_dotenv()
 
 
 class Config:
-    """Base configuration."""
+
 
     SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 
@@ -49,20 +49,20 @@ class Config:
 
 
 class DevelopmentConfig(Config):
-    """Development configuration."""
+
     DEBUG = True
     SQLALCHEMY_ECHO = False
 
 
 class TestingConfig(Config):
-    """Testing configuration."""
+
     TESTING = True
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(seconds=300)
 
 
 class ProductionConfig(Config):
-    """Production configuration."""
+
     DEBUG = False
 
     @property
@@ -89,6 +89,6 @@ config_by_name = {
 
 
 def get_config():
-    """Get configuration based on environment."""
+
     env = os.environ.get('FLASK_ENV', 'development')
     return config_by_name.get(env, DevelopmentConfig)

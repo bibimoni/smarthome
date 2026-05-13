@@ -1,4 +1,4 @@
-"""Scene service for automation scenario management."""
+
 from typing import List, Optional, Tuple, Dict
 from datetime import datetime
 from app.extensions import db
@@ -8,19 +8,12 @@ from app.models.data import EventLog
 
 
 class SceneService:
-    """Service class for scene management operations."""
+
 
     @staticmethod
     def get_all_scenes(user_id: int = None) -> List[Scene]:
-        """
-        Get all scenes.
 
-        Args:
-            user_id: Optional user ID to filter scenes
 
-        Returns:
-            List of Scene objects
-        """
         query = Scene.query.filter_by(is_active=True)
         if user_id:
             query = query.filter_by(user_id=user_id)
@@ -28,25 +21,14 @@ class SceneService:
 
     @staticmethod
     def get_scene_by_id(scene_id: int) -> Optional[Scene]:
-        """Get scene by ID."""
+
         return Scene.query.get(scene_id)
 
     @staticmethod
     def create_scene(user_id: int, name: str, description: str = None,
                      conditions: List[Dict] = None, actions: List[Dict] = None) -> Tuple[Optional[Scene], str]:
-        """
-        Create a new scene with conditions and actions.
 
-        Args:
-            user_id: User ID creating the scene
-            name: Scene name
-            description: Scene description
-            conditions: List of condition dicts with sensor_id, operator, threshold_value
-            actions: List of action dicts with actuator_id, action_value
 
-        Returns:
-            Tuple of (Scene or None, error message)
-        """
         if not name or len(name.strip()) == 0:
             return None, "Scene name is required"
 
@@ -104,7 +86,7 @@ class SceneService:
     @staticmethod
     def update_scene(scene_id: int, name: str = None, description: str = None,
                      is_active: bool = None) -> Tuple[Optional[Scene], str]:
-        """Update scene properties."""
+
         scene = Scene.query.get(scene_id)
         if not scene:
             return None, "Scene not found"
@@ -127,7 +109,7 @@ class SceneService:
 
     @staticmethod
     def delete_scene(scene_id: int) -> Tuple[bool, str]:
-        """Delete a scene."""
+
         scene = Scene.query.get(scene_id)
         if not scene:
             return False, "Scene not found"
@@ -140,18 +122,8 @@ class SceneService:
     @staticmethod
     def add_condition(scene_id: int, sensor_id: int, operator: str,
                       threshold_value: float) -> Tuple[Optional[SceneCondition], str]:
-        """
-        Add a condition to a scene.
 
-        Args:
-            scene_id: Scene ID
-            sensor_id: Sensor ID
-            operator: Comparison operator
-            threshold_value: Threshold value
 
-        Returns:
-            Tuple of (SceneCondition or None, error message)
-        """
         scene = Scene.query.get(scene_id)
         if not scene:
             return None, "Scene not found"
@@ -177,7 +149,7 @@ class SceneService:
 
     @staticmethod
     def remove_condition(condition_id: int) -> Tuple[bool, str]:
-        """Remove a condition from a scene."""
+
         condition = SceneCondition.query.get(condition_id)
         if not condition:
             return False, "Condition not found"
@@ -190,17 +162,8 @@ class SceneService:
     @staticmethod
     def add_action(scene_id: int, actuator_id: int,
                    action_value: str) -> Tuple[Optional[SceneAction], str]:
-        """
-        Add an action to a scene.
 
-        Args:
-            scene_id: Scene ID
-            actuator_id: Actuator ID
-            action_value: Action value (ON, OFF, etc.)
 
-        Returns:
-            Tuple of (SceneAction or None, error message)
-        """
         scene = Scene.query.get(scene_id)
         if not scene:
             return None, "Scene not found"
@@ -222,7 +185,7 @@ class SceneService:
 
     @staticmethod
     def remove_action(action_id: int) -> Tuple[bool, str]:
-        """Remove an action from a scene."""
+
         action = SceneAction.query.get(action_id)
         if not action:
             return False, "Action not found"
@@ -234,16 +197,8 @@ class SceneService:
 
     @staticmethod
     def execute_scene(scene_id: int, user_id: int = None) -> Tuple[bool, str]:
-        """
-        Manually execute a scene.
 
-        Args:
-            scene_id: Scene ID
-            user_id: User ID executing the scene
 
-        Returns:
-            Tuple of (success, error message)
-        """
         scene = Scene.query.get(scene_id)
         if not scene:
             return False, "Scene not found"
@@ -271,10 +226,8 @@ class SceneService:
 
     @staticmethod
     def check_and_execute_scenes():
-        """
-        Check all active scenes and execute if conditions are met.
-        This should be called periodically (e.g., when new sensor data arrives).
-        """
+
+
         scenes = Scene.query.filter_by(is_active=True).all()
 
         for scene in scenes:
@@ -301,15 +254,8 @@ class SceneService:
 
     @staticmethod
     def get_scene_status(scene_id: int) -> Optional[dict]:
-        """
-        Get status of a scene including condition evaluation.
 
-        Args:
-            scene_id: Scene ID
 
-        Returns:
-            Status dict or None
-        """
         scene = Scene.query.get(scene_id)
         if not scene:
             return None
